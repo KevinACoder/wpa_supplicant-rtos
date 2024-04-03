@@ -31,6 +31,7 @@
 #include "crypto/tls.h"
 #include "wpa_supplicant/scan.h"
 #include "wpa_supplicant/sme.h"
+#include "rsn_supp/pmksa_cache.h"
 
 #ifdef CONFIG_HOSTAPD
 #include "ap/hostapd.h"
@@ -1229,6 +1230,10 @@ static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network 
     conf->no_pri_sec_switch = 1;
     conf->ht_op_mode_fixed  = 1;
 
+#ifdef CONFIG_WIFI_DTIM_PERIOD
+    bss->dtim_period = network->dtim_period;
+#endif
+
     ssid           = &bss->ssid;
     ssid->ssid_len = os_strlen(network->ssid);
     if (ssid->ssid_len > SSID_MAX_LEN || ssid->ssid_len < 1)
@@ -1676,7 +1681,6 @@ static void hostapd_reset_bss(struct hostapd_bss_config *bss)
 
     bss->tls_flags     = 0;
     bss->ieee802_1x    = 0;
-    bss->eapol_version = 0;
     bss->eap_server    = 0;
 
     bss->sae_pwe = 0;
@@ -1873,6 +1877,12 @@ int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
 
         ssid->ssid_len = os_strlen(network->ssid);
         memcpy(ssid->ssid, network->ssid, ssid->ssid_len);
+        if (network->bssid_specific)
+        {
+            memcpy(ssid->bssid, network->bssid, IEEEtypes_ADDRESS_SIZE);
+            ssid->bssid_set = 1;
+        }
+
         ssid->disabled = 1;
         ssid->key_mgmt = network->security.key_mgmt;
         ssid->scan_ssid = 1;
@@ -2627,6 +2637,8 @@ int wpa_supp_disconnect(const struct netif *dev)
 
     wpa_s->scan_res_fail_handler = NULL;
 
+    wpa_config_remove_blob(wpa_s->conf, "eap-fast-pac");
+
     eapol_sm_invalidate_cached_session(wpa_s->eapol);
     wpas_request_disconnection(wpa_s);
 
@@ -2722,6 +2734,7 @@ int wpa_supp_remove_network(const struct netif *dev, struct wlan_network *networ
                 wpa_config_remove_blob(wpa_s->conf, "ca_cert2");
                 wpa_config_remove_blob(wpa_s->conf, "cloent_cert2");
                 wpa_config_remove_blob(wpa_s->conf, "private_key2");
+                wpa_config_remove_blob(wpa_s->conf, "eap-fast-pac");
                 break;
 #endif
             default:
@@ -2809,6 +2822,7 @@ int wpa_supp_pmksa_flush(const struct netif *dev)
         goto out;
     }
 
+    pmksa_cache_clear_current(wpa_s->wpa);
     ptksa_cache_flush(wpa_s->ptksa, NULL, WPA_CIPHER_NONE);
     wpa_sm_pmksa_cache_flush(wpa_s->wpa, NULL);
 #ifdef CONFIG_AP
@@ -4933,6 +4947,11 @@ int wpa_supp_init(void (*msg_cb)(const char *txt, size_t len))
     }
 #endif
 
+    bandwidth = 2;
+    h_hidden_ssid = 0;
+    h_beacon_int = 100;
+    h_max_num_sta = 8;
+
     return 0;
 }
 
@@ -4964,4 +4983,36 @@ int wpa_supp_deinit(void)
 #endif
 
     return 0;
+}
+
+void hostapd_connected_sta_list(wifi_sta_info_t *si, wifi_sta_list_t *sl)
+{
+    struct hostapd_iface *hapd_s;
+    struct netif *netif       = net_get_uap_interface();
+    hapd_s                    = get_hostapd_handle(netif);
+    struct hostapd_data *hapd = hapd_s->bss[0];
+    struct sta_info *sta;
+    int count = 0, i = 0;
+
+    for (sta = hapd->sta_list; sta; sta = sta->next)
+        count++;
+
+    PRINTF("\r\nNumber of STA = %d\r\n", count);
+
+    for (sta = hapd->sta_list; sta; sta = sta->next)
+    {
+        PRINTF("\r\nSTA %d information:\n\r", sta->aid);
+        PRINTF("=====================\r\n");
+        PRINTF("MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\r\n", sta->addr[0], sta->addr[1], sta->addr[2], sta->addr[3],
+               sta->addr[4], sta->addr[5]);
+        for (i = 0; i < sl->count; i++)
+        {
+          if (memcmp(si[i].mac, sta->addr, MLAN_MAC_ADDR_LENGTH) == 0)
+          {
+                PRINTF("Power mfg status: %s\r\n", (si[i].power_mgmt_status == 0U) ? "active" : "power save");
+                PRINTF("Rssi : %d dBm\r\n\r\n", (signed char)si[i].rssi);
+                break;
+          }
+        }
+    }
 }

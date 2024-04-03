@@ -27,6 +27,10 @@ static void wpa_drv_freertos_event_ecsa_complete(struct freertos_drv_if_ctx *if_
 
 static int wpa_drv_freertos_cancel_remain_on_channel(void *priv);
 
+static void wpa_drv_freertos_event_dfs_cac_started(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event);
+
+static void wpa_drv_freertos_event_dfs_cac_finished(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event);
+
 void wpa_supplicant_event_wrapper(void *ctx, enum wpa_event_type event, union wpa_event_data *data)
 {
     struct wpa_supplicant_event_msg *msg = NULL;
@@ -513,6 +517,8 @@ static void *wpa_drv_freertos_init(void *ctx, const char *ifname, void *global_p
     callbk_fns.mac_changed = wpa_drv_freertos_event_mac_changed;
     callbk_fns.chan_list_changed = wpa_drv_freertos_event_chan_list_changed;
     callbk_fns.ecsa_complete     = wpa_drv_freertos_event_ecsa_complete;
+    callbk_fns.dfs_cac_started   = wpa_drv_freertos_event_dfs_cac_started;
+    callbk_fns.dfs_cac_finished  = wpa_drv_freertos_event_dfs_cac_finished;
 
     if_ctx->dev_priv = dev_ops->init(if_ctx, ifname, &callbk_fns);
 
@@ -1078,10 +1084,43 @@ out:
     return;
 }
 
+static int wpa_drv_freertos_del_key(void *priv, const u8 *addr, int key_idx)
+{
+    struct freertos_drv_if_ctx *if_ctx              = NULL;
+    const struct freertos_wpa_supp_dev_ops *dev_ops = NULL;
+    int ret                                         = -1;
+
+    if (!priv)
+    {
+        wpa_printf(MSG_ERROR, "%s: Invalid handle", __func__);
+        goto out;
+    }
+
+    if_ctx = priv;
+
+    dev_ops = (struct freertos_wpa_supp_dev_ops *)if_ctx->dev_ops;
+
+    ret = dev_ops->del_key(if_ctx->dev_priv, addr, key_idx);
+
+    if (ret)
+    {
+        wpa_printf(MSG_ERROR, "%s: set_key op failed", __func__);
+        goto out;
+    }
+
+    ret = 0;
+
+out:
+    return ret;
+}
+
 static int wpa_drv_freertos_set_key(void *priv, struct wpa_driver_set_key_params *params)
 {
     struct freertos_drv_if_ctx *if_ctx              = NULL;
     enum key_flag key_flag = params->key_flag;
+    enum wpa_alg alg = params->alg;
+    const u8 *addr   = params->addr;
+    int key_idx      = params->key_idx;
 
     if (check_key_flag(key_flag))
     {
@@ -1093,6 +1132,11 @@ static int wpa_drv_freertos_set_key(void *priv, struct wpa_driver_set_key_params
     {
         wpa_printf(MSG_ERROR, "%s: Invalid handle", __func__);
         return -1;
+    }
+
+    if (alg == WPA_ALG_NONE)
+    {
+        return wpa_drv_freertos_del_key(priv, addr, key_idx);
     }
 
     if_ctx = priv;
@@ -1154,7 +1198,7 @@ static int wpa_drv_freertos_get_capa(void *priv, struct wpa_driver_capa *capa)
     capa->flags |= WPA_DRIVER_FLAGS_SAE;
     capa->flags |= WPA_DRIVER_FLAGS_AP;
     capa->flags |= WPA_DRIVER_FLAGS_ACS_OFFLOAD;
-    //capa->flags |= WPA_DRIVER_FLAGS_DFS_OFFLOAD;
+    capa->flags |= WPA_DRIVER_FLAGS_DFS_OFFLOAD;
     //capa->flags |= WPA_DRIVER_FLAGS_AP_UAPSD;
     capa->flags |= WPA_DRIVER_FLAGS_INACTIVITY_TIMER;
     capa->flags |= WPA_DRIVER_FLAGS_AP_MLME;
@@ -1614,6 +1658,26 @@ static void wpa_drv_freertos_event_ecsa_complete(struct freertos_drv_if_ctx *if_
         wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_CH_SWITCH, event);
 }
 
+static void wpa_drv_freertos_event_dfs_cac_started(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event)
+{
+#ifdef CONFIG_HOSTAPD
+    if (if_ctx->hapd)
+        hostapd_event_wrapper(if_ctx->hapd, EVENT_DFS_CAC_STARTED, event);
+    else
+#endif
+        wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_DFS_CAC_STARTED, event);
+}
+
+static void wpa_drv_freertos_event_dfs_cac_finished(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event)
+{
+#ifdef CONFIG_HOSTAPD
+    if (if_ctx->hapd)
+        hostapd_event_wrapper(if_ctx->hapd, EVENT_DFS_CAC_FINISHED, event);
+    else
+#endif
+        wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_DFS_CAC_FINISHED, event);
+}
+
 static void *wpa_drv_freertos_hapd_init(struct hostapd_data *hapd, struct wpa_init_params *params)
 {
     struct freertos_drv_if_ctx *if_ctx              = NULL;
@@ -1683,6 +1747,8 @@ static void *wpa_drv_freertos_hapd_init(struct hostapd_data *hapd, struct wpa_in
     callbk_fns.mac_changed = wpa_drv_freertos_event_mac_changed;
     callbk_fns.chan_list_changed = wpa_drv_freertos_event_chan_list_changed;
     callbk_fns.ecsa_complete   = wpa_drv_freertos_event_ecsa_complete;
+    callbk_fns.dfs_cac_started  = wpa_drv_freertos_event_dfs_cac_started;
+    callbk_fns.dfs_cac_finished = wpa_drv_freertos_event_dfs_cac_finished;
 
     if_ctx->dev_priv = dev_ops->hapd_init(if_ctx, params->ifname, &callbk_fns);
 

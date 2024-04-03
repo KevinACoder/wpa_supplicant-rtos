@@ -4,7 +4,7 @@
 #include "os.h"
 
 #include "fsl_os_abstraction.h"
-#include <time.h>
+//#include <time.h>
 #include "utils/common.h"
 //#include "mbedtls/platform_util.h"
 
@@ -38,7 +38,7 @@ static unsigned int os_timestamp(void)
     vPortExitCritical();
     return ((CNTMAX - counter) / CPU_CLOCK_TICKSPERUSEC) + (nticks * USECSPERTICK);
 }
-#endif
+
 
 int gettimeofday(struct timeval *tp, void *tzp)
 {
@@ -54,6 +54,7 @@ int gettimeofday(struct timeval *tp, void *tzp)
 
     return 0;
 }
+#endif
 
 void os_sleep(os_time_t sec, os_time_t usec)
 {

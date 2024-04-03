@@ -1357,62 +1357,67 @@ int hlr_main(int argc, char *argv[])
     char *sqlite_db_file   = NULL;
 #endif
     int ret                = 0;
+    cli_optind             = 0;
 
     if (os_program_init())
         return -1;
 
     if (hlr_init_done == 1)
     {
+        PRINTF("Already Listening for requests on %s\r\n", socket_path);
         return 0;
     }
 
     socket_path = default_socket_path;
 
-    for (;;)
+    if (argc > 0)
     {
-        c = cli_getopt(argc, argv, "D:g:hi:m:s:u");
-        if (c < 0)
-            break;
-        switch (c)
+        for (;;)
         {
-            case 'D':
+            c = cli_getopt(argc, argv, "D:g:hi:m:s:u");
+            if (c < 0)
+                break;
+            switch (c)
+            {
+                case 'D':
 #ifdef CONFIG_SQLITE
-                sqlite_db_file = cli_optarg;
-                break;
+                    sqlite_db_file = cli_optarg;
+                    break;
 #else  /* CONFIG_SQLITE */
-                PRINTF("No SQLite support included in the build\r\n");
-                return -1;
-#endif /* CONFIG_SQLITE */
-            case 'g':
-#ifndef CONFIG_FREERTOS
-                gsm_triplet_file = cli_optarg;
-#endif
-                break;
-            case 'h':
-                usage();
-                return 0;
-            case 'i':
-                ind_len = atoi(cli_optarg);
-                if (ind_len < 0 || ind_len > 32)
-                {
-                    PRINTF("Invalid IND length\r\n");
+                    PRINTF("No SQLite support included in the build\r\n");
                     return -1;
-                }
-                break;
-            case 'm':
+#endif /* CONFIG_SQLITE */
+                case 'g':
 #ifndef CONFIG_FREERTOS
-                milenage_file = cli_optarg;
+                    gsm_triplet_file = cli_optarg;
 #endif
-                break;
-            case 's':
-                socket_path = cli_optarg;
-                break;
-            case 'u':
-                update_milenage = 1;
-                break;
-            default:
-                usage();
-                return -1;
+                    break;
+                case 'h':
+                    usage();
+                    return 0;
+                case 'i':
+                    ind_len = atoi(cli_optarg);
+                    if (ind_len < 0 || ind_len > 32)
+                    {
+                        PRINTF("Invalid IND length\r\n");
+                        return -1;
+                    }
+                    break;
+                case 'm':
+#ifndef CONFIG_FREERTOS
+                    milenage_file = cli_optarg;
+#endif
+                    break;
+                case 's':
+                    socket_path = cli_optarg;
+                    break;
+                case 'u':
+                    update_milenage = 1;
+                    break;
+                default:
+                    usage();
+                    return -1;
+            }
         }
     }
 

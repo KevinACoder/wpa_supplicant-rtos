@@ -11,7 +11,7 @@
     <definition extID="MIMXRT1166xxxxx"/>
     <definition extID="armgcc"/>
   </externalDefinitions>
-  <ksdk id="MCUXpressoSDK2150_middleware_nxp_wifi_wpa_supplicant_MIMXRT1166_manifest_v3_14" name="MCUXpressoSDK2150_middleware_nxp_wifi_wpa_supplicant_MIMXRT1166_manifest_v3_14" version="2.15.0" revision="2.15.0"/>
+  <ksdk id="MCUXpressoSDK215100_middleware_nxp_wifi_wpa_supplicant_MIMXRT1166_manifest_v3_14" name="MCUXpressoSDK215100_middleware_nxp_wifi_wpa_supplicant_MIMXRT1166_manifest_v3_14" version="2.15.100" revision="2.15.100"/>
   <components>
     <component id="middleware.wireless.wpa_supplicant.rtos.MIMXRT1166" name="wpa_supplicant-rtos" brief="Wpa supplicant rtos" version="2.11.0" full_name="Wpa supplicant rtos" category="Wireless/wpa_supplicant" user_visible="true" type="middleware" package_base_path=".././" project_base_path="wpa_supplicant-rtos">
       <defines>
