@@ -62,7 +62,7 @@
 #ifdef MBEDTLS_DEBUG_C
 #define DEBUG_THRESHOLD 4
 #include <mbedtls/debug.h>
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 #define PRINTF printk
 #else
 #include "fsl_debug_console.h"

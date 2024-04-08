@@ -10,7 +10,7 @@
 #include "utils/includes.h"
 
 #ifdef CONFIG_DPP
-#if defined(CONFIG_CTRL_IFACE_UNIX) || defined(CONFIG_ZEPHYR)
+#if defined(CONFIG_CTRL_IFACE_UNIX) || defined(__ZEPHYR__)
 #include <fcntl.h>
 #endif /* CONFIG_CTRL_IFACE_UNIX */
 

@@ -9,7 +9,7 @@
  */
 
 #include "fsl_os_abstraction.h"
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 #include "wm_net.h"
 #else
 #include <lwip/sys.h>
@@ -91,7 +91,7 @@ extern OSA_SEMAPHORE_HANDLE_DEFINE(hostapdReadySemaphoreHandle);
 
 struct wpa_global *global;
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 
 const int WPA_SUPP_TASK_PRIO       = CONFIG_WIFI_MAX_PRIO + 2; //OS_PRIO_2;
 
@@ -158,7 +158,7 @@ static void iface_cb(struct netif *iface, void *user_data)
 {
     struct wpa_interface *ifaces = user_data;
     char own_addr[NETIF_MAX_HWADDR_LEN];
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     const struct net_linkaddr *link_addr = NULL;
     const struct device *dev             = NULL;
 
@@ -170,7 +170,7 @@ static void iface_cb(struct netif *iface, void *user_data)
 
     memset(ifname, 0, sizeof(ifname));
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     dev = net_if_get_device((struct net_if *)iface);
     strncpy(ifname, dev->name, NETIF_NAMESIZE - 1);
     ifname[NETIF_NAMESIZE - 1] = '\0';
@@ -189,7 +189,7 @@ void process_wpa_supplicant_event()
     void *mem;
     struct wpa_supplicant_event_msg *msg = NULL;
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     while (k_msgq_get(&event_queue, &mem, K_NO_WAIT) == 0)
 #else
     if (sys_mbox_valid(&event_queue))
@@ -216,14 +216,14 @@ void process_wpa_supplicant_event()
                 os_free(msg);
             }
         }
-#ifndef CONFIG_ZEPHYR
+#ifndef __ZEPHYR__
      }
 #endif
 }
 
 static void notify_wpa_supplicant_event(wpa_supp_event_t event)
 {
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     k_event_post(&suppMainTaskEvent, (1U << event));
     k_yield();
     k_sleep(K_MSEC(10));
@@ -256,7 +256,7 @@ int send_wpa_supplicant_dummy_event()
 
 int send_wpa_supplicant_event(struct wpa_supplicant_event_msg *msg)
 {
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     k_msgq_put(&event_queue, (void *)(&msg), K_FOREVER);
 #else
     sys_mbox_post(&event_queue, (void *)msg);
@@ -267,7 +267,7 @@ int send_wpa_supplicant_event(struct wpa_supplicant_event_msg *msg)
     return 0;
 }
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 static void supplicant_main_task(void *arg, void *arg1, void *arg2)
 #else
 static void supplicant_main_task(osa_task_param_t arg)
@@ -280,7 +280,7 @@ static void supplicant_main_task(osa_task_param_t arg)
     int iface_count, exitcode = -1;
     struct wpa_params params;
 
-#ifndef CONFIG_ZEPHYR
+#ifndef __ZEPHYR__
     if (sys_mbox_new(&event_queue, WS_NUM_MESSAGES) != ERR_OK)
     {
         wpa_printf(MSG_ERROR, "Failed to create msg queue");
@@ -420,7 +420,7 @@ out:
     os_free(params.match_ifaces);
 #endif /* CONFIG_MATCH_IFACE */
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     k_msgq_purge(&event_queue);
 #else
     if (event_queue != NULL)
@@ -450,7 +450,7 @@ out:
 
     (void)OSA_SemaphorePost((osa_semaphore_handle_t)wpaSuppReadySemaphoreHandle);
 
-#ifndef CONFIG_ZEPHYR
+#ifndef __ZEPHYR__
     vTaskDelete(NULL);
 #endif
 
@@ -467,7 +467,7 @@ int start_wpa_supplicant(char *iface_name)
 {
     int ret = 0;
 
-#if defined(CONFIG_WPA_SUPP_CRYPTO) && !defined(CONFIG_ZEPHYR)
+#if defined(CONFIG_WPA_SUPP_CRYPTO) && !defined(__ZEPHYR__)
     if (crypto_init_done == false)
     {
         CRYPTO_InitHardware();
@@ -478,7 +478,7 @@ int start_wpa_supplicant(char *iface_name)
     supp_nxp_crypto_init();
 #endif
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     supplicant_thread = k_thread_create(&suppMainTask, suppMainTaskStack,
         K_THREAD_STACK_SIZEOF(suppMainTaskStack), supplicant_main_task, iface_name, NULL, NULL,
         WPA_SUPP_TASK_PRIO, 0, K_NO_WAIT);
@@ -508,7 +508,7 @@ int stop_wpa_supplicant(void)
     /* Send dummy notification to supplicant thread for unblocking its eloop*/
     send_wpa_supplicant_dummy_event();
     /* Context Switch so that wpa suppplicant thread get chance to terminate eloop*/
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     k_yield();
 #else
     portYIELD();
@@ -932,7 +932,7 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
 
     char if_name[NETIF_NAMESIZE] = {0};
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     const struct device *dev = NULL;
     dev = net_if_get_device((struct net_if *)netif);
     strncpy(if_name, dev->name, NETIF_NAMESIZE - 1);
@@ -1140,7 +1140,7 @@ static void hostapd_main_task(osa_task_param_t arg)
 
     char if_name[NETIF_NAMESIZE] = {0};
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     const struct device *dev = NULL;
     dev = net_if_get_device((struct net_if *)netif);
     strncpy(if_name, dev->name, NETIF_NAMESIZE - 1);

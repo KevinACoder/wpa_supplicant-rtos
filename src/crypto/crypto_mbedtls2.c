@@ -2357,7 +2357,7 @@ struct crypto_ecdh *crypto_ecdh_init_owe(int group)
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     mbedtls_entropy_add_source(&entropy, wm_wrap_entropy_poll, NULL, ENTROPY_MIN_PLATFORM,
                                MBEDTLS_ENTROPY_SOURCE_STRONG);
 #endif
@@ -2551,7 +2551,7 @@ struct wpabuf *crypto_ecdh_set_peerkey_owe(struct crypto_ecdh *ecdh, int inc_y, 
     /* Initialize CTR_DRBG context */
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     mbedtls_entropy_add_source(&entropy, wm_wrap_entropy_poll, NULL, ENTROPY_MIN_PLATFORM,
                                MBEDTLS_ENTROPY_SOURCE_STRONG);
 #endif

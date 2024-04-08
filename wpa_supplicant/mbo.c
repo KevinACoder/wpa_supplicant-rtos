@@ -551,7 +551,7 @@ void wpas_mbo_update_cell_capa(struct wpa_supplicant *wpa_s, u8 mbo_cell_capa)
 struct wpabuf *mbo_build_anqp_buf(struct wpa_supplicant *wpa_s, struct wpa_bss *bss, u32 mbo_subtypes)
 {
     struct wpabuf *anqp_buf;
-#if !(defined(CONFIG_ZEPHYR) || defined(CONFIG_FREERTOS))
+#if !(defined(__ZEPHYR__) || defined(CONFIG_FREERTOS))
     u8 *len_pos;
 #endif
     u8 i;
@@ -568,7 +568,7 @@ struct wpabuf *mbo_build_anqp_buf(struct wpa_supplicant *wpa_s, struct wpa_bss *
     if (!anqp_buf)
         return NULL;
 
-#if !(defined(CONFIG_ZEPHYR) || defined(CONFIG_FREERTOS))
+#if !(defined(__ZEPHYR__) || defined(CONFIG_FREERTOS))
     len_pos = gas_anqp_add_element(anqp_buf, ANQP_VENDOR_SPECIFIC);
 #endif
     wpabuf_put_be24(anqp_buf, OUI_WFA);
@@ -583,7 +583,7 @@ struct wpabuf *mbo_build_anqp_buf(struct wpa_supplicant *wpa_s, struct wpa_bss *
             wpabuf_put_u8(anqp_buf, i);
     }
 
-#if !(defined(CONFIG_ZEPHYR) || defined(CONFIG_FREERTOS))
+#if !(defined(__ZEPHYR__) || defined(CONFIG_FREERTOS))
     gas_anqp_set_element_len(anqp_buf, len_pos);
 #endif
     return anqp_buf;

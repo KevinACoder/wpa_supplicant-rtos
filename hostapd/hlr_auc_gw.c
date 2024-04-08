@@ -51,7 +51,7 @@
 #include "includes.h"
 #include "fsl_os_abstraction.h"
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
 #include <sys/un.h>
 #endif
 #ifdef CONFIG_SQLITE
@@ -72,7 +72,7 @@
 static const char *default_socket_path = "/tmp/hlr_auc_gw.sock";
 static const char *socket_path;
 static int serv_sock       = -1;
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
 static char *milenage_file = NULL;
 #endif
 static int update_milenage = 0;
@@ -255,7 +255,7 @@ static int db_update_milenage_sqn(struct milenage_parameters *m)
 
 static int open_socket(const char *path)
 {
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
     struct sockaddr_un addr;
     int s;
 
@@ -282,7 +282,7 @@ static int open_socket(const char *path)
 #endif
 }
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
 
 static int read_gsm_triplets2(const char *fname)
 {
@@ -404,7 +404,7 @@ static struct gsm_triplet *get_gsm_triplet(const char *imsi)
     return NULL;
 }
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
 
 static int read_milenage2(const char *fname)
 {
@@ -920,7 +920,7 @@ static int process_cmd(char *cmd, char *resp, size_t resp_len)
     return -1;
 }
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
 
 static int process(int s)
 {
@@ -973,7 +973,7 @@ static void cleanup(void)
     struct gsm_triplet *g, *gprev;
     struct milenage_parameters *m, *prev;
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
     if (update_milenage && milenage_file && sqn_changes)
         update_milenage_file(milenage_file);
 #endif
@@ -994,7 +994,7 @@ static void cleanup(void)
         os_free(prev);
     }
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
     if (serv_sock >= 0)
         close(serv_sock);
     if (socket_path)
@@ -1010,7 +1010,7 @@ static void cleanup(void)
 #endif /* CONFIG_SQLITE */
 }
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
 
 static void handle_term(int sig)
 {
@@ -1185,7 +1185,7 @@ int hlr_cli_deinit(void)
     return WM_SUCCESS;
 }
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 const int HLR_TASK_PRIO       = OS_PRIO_3;
 #define CONFIG_HLR_THREAD_STACK_SIZE 2048
 K_THREAD_STACK_DEFINE(hlrCliTaskStack, CONFIG_HLR_THREAD_STACK_SIZE);
@@ -1219,7 +1219,7 @@ static void process_hlr_event()
     char *buf = NULL, *resp;
     int res;
     
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     while (k_msgq_get(&hlr_cli_event_queue, &mem, K_NO_WAIT) == 0)
 #else
     if (sys_mbox_valid(&hlr_cli_event_queue))
@@ -1266,14 +1266,14 @@ static void process_hlr_event()
                 os_free(buf);
             }
         }
-#ifndef CONFIG_ZEPHYR		
+#ifndef __ZEPHYR__		
     }
 #endif
 }
 
 static void notify_hlr_event(hlr_event_t event)
 {
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     k_event_post(&hlrCliTaskEvent, (1U << event));
     k_yield();
     k_sleep(K_MSEC(10));
@@ -1299,7 +1299,7 @@ static void notify_hlr_event(hlr_event_t event)
 
 int send_hlr_event(char *msg)
 {
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     k_msgq_put(&hlr_cli_event_queue, (void *)(&msg), K_FOREVER);
 #else
     sys_mbox_post(&hlr_cli_event_queue, (void *)msg);
@@ -1309,7 +1309,7 @@ int send_hlr_event(char *msg)
     return 0;
 }
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 static void hlr_main_task(void *arg, void *arg1, void *arg2)
 #else
 static void hlr_main_task(osa_task_param_t arg)
@@ -1317,7 +1317,7 @@ static void hlr_main_task(osa_task_param_t arg)
 {
     uint32_t taskNotification = 0U;
 
-#ifndef CONFIG_ZEPHYR
+#ifndef __ZEPHYR__
     if (sys_mbox_new(&hlr_cli_event_queue, HLR_NUM_MESSAGES) != ERR_OK)
     {
         wpa_printf(MSG_ERROR, "Failed to create msg queue");
@@ -1328,7 +1328,7 @@ static void hlr_main_task(osa_task_param_t arg)
     for (;;)
     {
         taskNotification = 0U;
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
         taskNotification = k_event_wait(&hlrCliTaskEvent, (1U << EVENT), 0, K_FOREVER);
         k_event_clear(&hlrCliTaskEvent, 0xFF);
 #else
@@ -1383,7 +1383,7 @@ static u8 hlr_init_done = 0;
 int hlr_main(int argc, char *argv[])
 {
     int c;
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
     char *gsm_triplet_file = NULL;
     char *sqlite_db_file   = NULL;
 #endif
@@ -1415,7 +1415,7 @@ int hlr_main(int argc, char *argv[])
                 return -1;
 #endif /* CONFIG_SQLITE */
             case 'g':
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
                 gsm_triplet_file = cli_optarg;
 #endif
                 break;
@@ -1431,7 +1431,7 @@ int hlr_main(int argc, char *argv[])
                 }
                 break;
             case 'm':
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
                 milenage_file = cli_optarg;
 #endif
                 break;
@@ -1447,7 +1447,7 @@ int hlr_main(int argc, char *argv[])
         }
     }
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
     if (!gsm_triplet_file && !milenage_file && !sqlite_db_file)
     {
         usage();
@@ -1472,7 +1472,7 @@ int hlr_main(int argc, char *argv[])
         return -1;
 #endif /* CONFIG_SQLITE */
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
     if (gsm_triplet_file && read_gsm_triplets2(gsm_triplet_file) < 0)
         return -1;
 
@@ -1488,7 +1488,7 @@ int hlr_main(int argc, char *argv[])
 
         PRINTF("Listening for requests on %s\r\n", socket_path);
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
         atexit(cleanup);
         signal(SIGTERM, handle_term);
         signal(SIGINT, handle_term);
@@ -1497,7 +1497,7 @@ int hlr_main(int argc, char *argv[])
             process(serv_sock);
 #endif
         hlr_init_done = 1;
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 		hlr_cli_thread = k_thread_create(&hlrCliTask, hlrCliTaskStack,
 			K_THREAD_STACK_SIZEOF(hlrCliTaskStack), hlr_main_task, NULL, NULL, NULL,
 			HLR_TASK_PRIO, 0, K_NO_WAIT);

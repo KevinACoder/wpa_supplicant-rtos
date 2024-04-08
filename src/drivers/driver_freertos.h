@@ -8,14 +8,14 @@
 #ifndef DRIVER_FREERTOS_H
 #define DRIVER_FREERTOS_H
 
-#ifndef CONFIG_ZEPHYR
+#ifndef __ZEPHYR__
 #include "lwip/netif.h"
 #endif
 
 #include "driver.h"
 #include "wpa_supplicant_i.h"
 #include "bss.h"
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 #include "l2_packet/l2_packet.h"
 #else
 #include "l2_packet.h"

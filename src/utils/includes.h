@@ -24,18 +24,18 @@
 #include <string.h>
 #ifndef _WIN32_WCE
 //#include <signal.h>
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 #include <sys/types.h>
 #include <errno.h>
 #endif
 #endif /* _WIN32_WCE */
 #include <ctype.h>
 
-#if !(defined(MSC_VER) || defined(CONFIG_ZEPHYR) || defined(CONFIG_FREERTOS))
+#if !(defined(MSC_VER) || defined(__ZEPHYR__) || defined(CONFIG_FREERTOS))
 #include <unistd.h>
 #endif /* _MSC_VER */
 
-#if !(defined(CONFIG_NATIVE_WINDOWS) || defined(CONFIG_ZEPHYR) || defined(CONFIG_FREERTOS))
+#if !(defined(CONFIG_NATIVE_WINDOWS) || defined(__ZEPHYR__) || defined(CONFIG_FREERTOS))
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -45,7 +45,7 @@
 #endif /* __vxworks */
 #endif /* CONFIG_NATIVE_WINDOWS */
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 #if defined(CONFIG_POSIX_API)
 #include <zephyr/posix/arpa/inet.h>
 #include <zephyr/posix/sys/select.h>
@@ -56,7 +56,7 @@
 #include <zephyr/net/socket.h>
 #endif /* defined(CONFIG_POSIX_API) */
 #include <zephyr/shell/shell.h>
-#endif /* defined(CONFIG_ZEPHYR) */
+#endif /* defined(__ZEPHYR__) */
 
 #include <wm_net.h>
 

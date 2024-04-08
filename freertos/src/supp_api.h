@@ -11,7 +11,7 @@
 #ifndef RTOS_SUPP_MGMT_H
 #define RTOS_SUPP_MGMT_H
 
-#ifndef CONFIG_ZEPHYR
+#ifndef __ZEPHYR__
 #include <lwip/netif.h>
 #include <lwip/netifapi.h>
 #endif

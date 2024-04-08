@@ -35,7 +35,7 @@
 /**************************** KSDK ********************************************/
 
 #include "fsl_device_registers.h"
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 #include <zephyr/kernel.h>
 #else
 #include "fsl_debug_console.h"
@@ -50,7 +50,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_PLATFORM_STD_FREE vPortFree
 
 #endif /* USE_RTOS*/
-#endif /* CONFIG_ZEPHYR */
+#endif /* __ZEPHYR__ */
 
 #undef FSL_FEATURE_SOC_DCP_COUNT
 

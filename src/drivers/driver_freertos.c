@@ -431,7 +431,7 @@ static void *wpa_drv_freertos_init(void *ctx, const char *ifname, void *global_p
     u8 ext_capab_mask[10]      = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     unsigned int ext_capab_len = 10;
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     device = net_if_get_binding(ifname);
 #else
     LOCK_TCPIP_CORE();
@@ -457,7 +457,7 @@ static void *wpa_drv_freertos_init(void *ctx, const char *ifname, void *global_p
     if_ctx->dev_ctx = device;
     if_ctx->drv_ctx = global_priv;
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     if_ctx->dev_ops = (struct freertos_wpa_supp_dev_ops *)net_if_get_dev_config((struct netif *)device);
 #else
 #if LWIP_NUM_NETIF_CLIENT_DATA > 0
@@ -1297,7 +1297,7 @@ static int wpa_drv_freertos_set_mac_addr(void *priv, const u8 *addr)
 {
     struct freertos_drv_if_ctx *if_ctx              = NULL;
     const struct freertos_wpa_supp_dev_ops *dev_ops = NULL;
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     const struct device *dev                        = NULL;
 #endif
     int ret                                         = -1;
@@ -1310,7 +1310,7 @@ static int wpa_drv_freertos_set_mac_addr(void *priv, const u8 *addr)
 
     if_ctx = priv;
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     dev = net_if_get_device((struct net_if *)if_ctx->dev_ctx);
     /* TODO: net_if has no num (number of this interface) */
     wpa_printf(MSG_EXCESSIVE, "set_mac_addr for %c%c to " MACSTR, dev->name[0], dev->name[1], MAC2STR(addr));
@@ -1682,12 +1682,12 @@ static void *wpa_drv_freertos_hapd_init(struct hostapd_data *hapd, struct wpa_in
     struct freertos_drv_if_ctx *if_ctx              = NULL;
     const struct freertos_wpa_supp_dev_ops *dev_ops = NULL;
     const struct netif *device                      = NULL;
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     const struct net_linkaddr *link_addr            = NULL;
 #endif
     struct freertos_hostapd_dev_callbk_fns callbk_fns;
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     device = net_if_get_binding(params->ifname);
 #else
     LOCK_TCPIP_CORE();
@@ -1714,7 +1714,7 @@ static void *wpa_drv_freertos_hapd_init(struct hostapd_data *hapd, struct wpa_in
     if_ctx->dev_ctx = device;
     if_ctx->drv_ctx = params->global_priv;
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     if_ctx->dev_ops = (struct freertos_wpa_supp_dev_ops *)net_if_get_dev_config((struct netif *)device);
     link_addr = net_if_get_link_addr((struct net_if *)device);
     os_memcpy(params->own_addr, link_addr->addr, link_addr->len);

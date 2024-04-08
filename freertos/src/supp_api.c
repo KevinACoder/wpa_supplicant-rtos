@@ -99,7 +99,7 @@ static inline struct wpa_supplicant *get_wpa_s_handle(const struct netif *dev)
 
     OSA_SemaphorePost((osa_semaphore_handle_t)wpaSuppReadySemaphoreHandle);
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     const struct device *dev_temp = NULL;
     dev_temp = net_if_get_device((struct net_if *)dev);
     strncpy(ifname, dev_temp->name, NETIF_NAMESIZE - 1);
@@ -133,7 +133,7 @@ static inline struct hostapd_iface *get_hostapd_handle(const struct netif *dev)
 
     OSA_SemaphorePost((osa_semaphore_handle_t)hostapdReadySemaphoreHandle);
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     const struct device *dev_temp = NULL;
     dev_temp = net_if_get_device((struct net_if *)dev);
     strncpy(ifname, dev_temp->name, NETIF_NAMESIZE - 1);
@@ -4885,8 +4885,16 @@ static int wpa_supp_add_acl_maclist(struct mac_acl_entry **acl, int *num, int vl
     return 0;
 }
 
+int wpa_supp_acl_comp(const void *a, const void *b)
+{
+	const struct mac_acl_entry *aa = a;
+	const struct mac_acl_entry *bb = b;
+	return os_memcmp(aa->addr, bb->addr, sizeof(macaddr));
+}
+
 int wpa_supp_set_mac_acl(const struct netif *dev, int filter_mode, char mac_count, unsigned char *mac_addr)
 {
+    int num = 0;
     struct hostapd_iface *hapd_s;
     struct hostapd_data *hapd;
     struct hostapd_bss_config *bss;
@@ -4913,7 +4921,7 @@ int wpa_supp_set_mac_acl(const struct netif *dev, int filter_mode, char mac_coun
             bss->num_deny_mac = 0;
             break;
         case 1:
-            for (int num = 0; num < mac_count;)
+            for (num = 0; num < mac_count;)
             {
                 if (wpa_supp_add_acl_maclist(&bss->accept_mac, &num, 0, &mac_addr[num*WLAN_MAC_ADDR_LENGTH]) < 0)
                 {
@@ -4923,9 +4931,10 @@ int wpa_supp_set_mac_acl(const struct netif *dev, int filter_mode, char mac_coun
             }
             bss->num_accept_mac = mac_count;
             bss->macaddr_acl = 1;
+            qsort(bss->accept_mac, bss->num_accept_mac, sizeof(struct mac_acl_entry), wpa_supp_acl_comp);
             break;
         case 2:
-            for (int num = 0; num < mac_count;)
+            for (num = 0; num < mac_count;)
             {
                 if (wpa_supp_add_acl_maclist(&bss->deny_mac, &num, 0, &mac_addr[num*WLAN_MAC_ADDR_LENGTH]) < 0)
                 {
@@ -4935,6 +4944,7 @@ int wpa_supp_set_mac_acl(const struct netif *dev, int filter_mode, char mac_coun
             }
             bss->num_deny_mac = mac_count;
             bss->macaddr_acl = 0;
+            qsort(bss->deny_mac, bss->num_deny_mac, sizeof(struct mac_acl_entry), wpa_supp_acl_comp);
             break;
         default:
           return -1;

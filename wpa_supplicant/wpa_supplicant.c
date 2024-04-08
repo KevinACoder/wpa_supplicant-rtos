@@ -888,7 +888,7 @@ void wpa_supplicant_reinit_autoscan(struct wpa_supplicant *wpa_s)
     }
 }
 
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
 // TODO: This WAR is needed as we always lose the first frame after association (DHCP),
 // and IP assignment gets delayed (esp. with exponential backoff in Zephyr DHCP client), so
 // we send out a dummy frame that will be lost, and then DHCP will go through smoothly.
@@ -1014,7 +1014,7 @@ void wpa_supplicant_set_state(struct wpa_supplicant *wpa_s, enum wpa_states stat
         wpa_s->after_wps      = 0;
         wpa_s->known_wps_freq = 0;
         wpas_p2p_completed(wpa_s);
-#if defined(CONFIG_ZEPHYR)
+#if defined(__ZEPHYR__)
         dhcp_war(wpa_s);
 #endif
         sme_sched_obss_scan(wpa_s, 1);
@@ -6738,7 +6738,7 @@ static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s, const struct 
         return -1;
     wpa_sm_set_eapol(wpa_s->wpa, wpa_s->eapol);
 
-#if !(defined(CONFIG_ZEPHYR) || defined(CONFIG_FREERTOS))
+#if !(defined(__ZEPHYR__) || defined(CONFIG_FREERTOS))
     wpa_s->ctrl_iface = wpa_supplicant_ctrl_iface_init(wpa_s);
     if (wpa_s->ctrl_iface == NULL)
     {
@@ -6905,7 +6905,7 @@ static void wpa_supplicant_deinit_iface(struct wpa_supplicant *wpa_s, int notify
 
     if (terminate)
         wpa_msg(wpa_s, MSG_INFO, WPA_EVENT_TERMINATING);
-#if !(defined(CONFIG_ZEPHYR) || defined(CONFIG_FREERTOS))
+#if !(defined(__ZEPHYR__) || defined(CONFIG_FREERTOS))
     wpa_supplicant_ctrl_iface_deinit(wpa_s, wpa_s->ctrl_iface);
     wpa_s->ctrl_iface = NULL;
 #endif
@@ -8100,7 +8100,7 @@ void wpas_request_disconnection(struct wpa_supplicant *wpa_s)
 #endif /* CONFIG_WNM */
 }
 
-#if !(defined(CONFIG_ZEPHYR) || defined(CONFIG_FREERTOS))
+#if !(defined(__ZEPHYR__) || defined(CONFIG_FREERTOS))
 void dump_freq_data(struct wpa_supplicant *wpa_s,
                     const char *title,
                     struct wpa_used_freq_data *freqs_data,
@@ -8115,7 +8115,7 @@ void dump_freq_data(struct wpa_supplicant *wpa_s,
         wpa_dbg(wpa_s, MSG_DEBUG, "freq[%u]: %d, flags=0x%X", i, cur->freq, cur->flags);
     }
 }
-#endif /* CONFIG_ZEPHYR , CONFIG_FREERTOS*/
+#endif /* __ZEPHYR__ , CONFIG_FREERTOS*/
 
 /*
  * Find the operating frequencies of any of the virtual interfaces that
@@ -8163,9 +8163,9 @@ int get_shared_radio_freqs_data(struct wpa_supplicant *wpa_s, struct wpa_used_fr
         }
     }
 
-#if !(defined(CONFIG_ZEPHYR) || defined(CONFIG_FREERTOS))
+#if !(defined(__ZEPHYR__) || defined(CONFIG_FREERTOS))
     dump_freq_data(wpa_s, "completed iteration", freqs_data, idx);
-#endif /* CONFIG_ZEPHYR ,CONFIG_FREERTOS */
+#endif /* __ZEPHYR__ ,CONFIG_FREERTOS */
     return idx;
 }
 

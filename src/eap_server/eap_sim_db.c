@@ -18,7 +18,7 @@
 #include "includes.h"
 #include "fsl_os_abstraction.h"
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
 #include <sys/un.h>
 #endif
 #ifdef CONFIG_SQLITE
@@ -635,7 +635,7 @@ parse_fail:
     eap_sim_db_free_pending(data, entry);
 }
 
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
 
 static void eap_sim_db_receive(int sock, void *eloop_ctx, void *sock_ctx)
 {
@@ -693,7 +693,7 @@ parse_fail:
 
 #endif
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 const int EAP_SIM_DB_TASK_PRIO       = OS_PRIO_2;
 #define CONFIG_EAP_SIM_DB_THREAD_STACK_SIZE 2048
 
@@ -726,7 +726,7 @@ static void process_eap_sim_db_event(struct eap_sim_db_data *data)
     char *pos, *cmd, *imsi;
     int res;
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     while (k_msgq_get(&eap_sim_db_event_queue, &mem, K_NO_WAIT) == 0)
 #else
     if (sys_mbox_valid(&eap_sim_db_event_queue))
@@ -785,14 +785,14 @@ parse_fail:
                 os_free(buf);
             }
         }
-#ifndef CONFIG_ZEPHYR
+#ifndef __ZEPHYR__
     }
 #endif
 }
 
 static void notify_eap_sim_db_event(eap_sim_db_event_t event)
 {
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     k_event_post(&eapSimdbTaskEvent, (1U << event));
     k_yield();
     k_sleep(K_MSEC(10));
@@ -818,7 +818,7 @@ static void notify_eap_sim_db_event(eap_sim_db_event_t event)
 
 int send_eap_sim_db_event(char *msg)
 {
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
     k_msgq_put(&eap_sim_db_event_queue, (void *)(&msg), K_FOREVER);
 #else
     sys_mbox_post(&eap_sim_db_event_queue, (void *)msg);
@@ -828,7 +828,7 @@ int send_eap_sim_db_event(char *msg)
     return 0;
 }
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
 static void eap_sim_db_main_task(void *arg, void *arg1, void *arg2)
 #else
 static void eap_sim_db_main_task(osa_task_param_t arg)
@@ -837,7 +837,7 @@ static void eap_sim_db_main_task(osa_task_param_t arg)
     struct eap_sim_db_data *data = (struct eap_sim_db_data *)arg;
     uint32_t taskNotification = 0U;
     
-#ifndef CONFIG_ZEPHYR
+#ifndef __ZEPHYR__
     if (sys_mbox_new(&eap_sim_db_event_queue, ESD_NUM_MESSAGES) != ERR_OK)
     {
         wpa_printf(MSG_ERROR, "Failed to create msg queue");
@@ -849,7 +849,7 @@ static void eap_sim_db_main_task(osa_task_param_t arg)
     {
         taskNotification = 0U;
 
-#ifdef CONFIG_ZEPHYR
+#ifdef __ZEPHYR__
         taskNotification = k_event_wait(&eapSimdbTaskEvent, (1U << EVENT), 0, K_FOREVER);
         k_event_clear(&eapSimdbTaskEvent, 0xFF);
 #else
@@ -870,7 +870,7 @@ static void eap_sim_db_main_task(osa_task_param_t arg)
 
 static int eap_sim_db_open_socket(struct eap_sim_db_data *data)
 {
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
     struct sockaddr_un addr;
     static int counter = 0;
 
@@ -920,7 +920,7 @@ static int eap_sim_db_open_socket(struct eap_sim_db_data *data)
 
     eloop_register_read_sock(data->sock, eap_sim_db_receive, data, NULL);
 
-#elif defined(CONFIG_ZEPHYR)
+#elif defined(__ZEPHYR__)
     eap_sim_db_thread = k_thread_create(&eapSimdbTask, eapSimdbTaskStack,
         K_THREAD_STACK_SIZEOF(eapSimdbTaskStack), eap_sim_db_main_task, data, NULL, NULL,
         EAP_SIM_DB_TASK_PRIO, 0, K_NO_WAIT);
@@ -935,7 +935,7 @@ static int eap_sim_db_open_socket(struct eap_sim_db_data *data)
 
 static void eap_sim_db_close_socket(struct eap_sim_db_data *data)
 {
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
     if (data->sock >= 0)
     {
         eloop_unregister_read_sock(data->sock);
@@ -948,7 +948,7 @@ static void eap_sim_db_close_socket(struct eap_sim_db_data *data)
         os_free(data->local_sock);
         data->local_sock = NULL;
     }
-#elif defined(CONFIG_ZEPHYR)
+#elif defined(__ZEPHYR__)
     if (eap_sim_db_thread)
     {
         k_thread_abort(eap_sim_db_thread);
@@ -1096,7 +1096,7 @@ extern int send_hlr_event(char *msg);
 
 static int eap_sim_db_send(struct eap_sim_db_data *data, const char *msg, size_t len)
 {
-#if !defined(CONFIG_FREERTOS) && !defined(CONFIG_ZEPHYR)
+#if !defined(CONFIG_FREERTOS) && !defined(__ZEPHYR__)
     int _errno = 0;
 
     if (send(data->sock, msg, len, 0) < 0)
