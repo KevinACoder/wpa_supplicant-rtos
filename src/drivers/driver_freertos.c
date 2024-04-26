@@ -2263,7 +2263,6 @@ out:
     return ret;
 }
 
-#if 0
 static int wpa_drv_freertos_sta_remove(void *priv, const u8 *addr)
 {
     struct freertos_drv_if_ctx *if_ctx              = NULL;
@@ -2293,7 +2292,6 @@ static int wpa_drv_freertos_sta_remove(void *priv, const u8 *addr)
 out:
     return ret;
 }
-#endif
 
 static int wpa_drv_freertos_send_eapol(
     void *priv, const u8 *addr, const u8 *data, size_t data_len, int encrypt, const u8 *own_addr, u32 flags)
@@ -2901,7 +2899,7 @@ const struct wpa_driver_ops wpa_driver_freertos_ops = {
     .set_ap                   = wpa_drv_freertos_set_ap,
     .send_mlme                = wpa_drv_freertos_send_mlme,
     .sta_add                  = wpa_drv_freertos_sta_add,
-    // .sta_remove               = wpa_drv_freertos_sta_remove,
+    .sta_remove               = wpa_drv_freertos_sta_remove,
     .hapd_send_eapol = wpa_drv_freertos_send_eapol,
     .set_freq        = wpa_drv_freertos_set_freq,
     .set_rts         = wpa_drv_freertos_set_rts,

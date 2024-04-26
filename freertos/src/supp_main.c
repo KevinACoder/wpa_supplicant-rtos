@@ -1014,6 +1014,9 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
     return conf;
 }
 
+#ifdef CONFIG_WPA_SUPP_WPA3
+extern void hostapd_config_free_sae_passwords(struct hostapd_bss_config *conf);
+#endif
 static int hostapd_enable_iface_cb(struct hostapd_iface *hapd_iface)
 {
     struct hostapd_data *bss;
@@ -1033,6 +1036,9 @@ static int hostapd_enable_iface_cb(struct hostapd_iface *hapd_iface)
     if (hostapd_setup_interface(hapd_iface))
     {
         wpa_printf(MSG_ERROR, "Failed to initialize hostapd interface");
+#ifdef CONFIG_WPA_SUPP_WPA3
+        hostapd_config_free_sae_passwords(hapd_iface->conf->last_bss);
+#endif
         return -1;
     }
 

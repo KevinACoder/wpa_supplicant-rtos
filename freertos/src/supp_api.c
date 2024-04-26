@@ -1085,8 +1085,6 @@ static int wpa_parse_intlist(int **int_list, char *val)
     while (*pos != '\0')
     {
         end = os_strchr(pos, ' ');
-        if (end)
-            *end = '\0';
 
         list[count++] = atoi(pos);
         if (!end)
@@ -1683,7 +1681,7 @@ static void hostapd_reset_bss(struct hostapd_bss_config *bss)
 
     bss->tls_flags     = 0;
     bss->ieee802_1x    = 0;
-    bss->eap_server    = 0;
+    bss->eap_server    = 1;
 
     bss->sae_pwe = 0;
     bss->transition_disable = 0;
@@ -1694,7 +1692,7 @@ static void hostapd_reset_bss(struct hostapd_bss_config *bss)
 }
 
 #ifdef CONFIG_WPA_SUPP_WPA3
-static void hostapd_config_free_sae_passwords(struct hostapd_bss_config *conf)
+void hostapd_config_free_sae_passwords(struct hostapd_bss_config *conf)
 {
     struct sae_password_entry *pw, *tmp;
 
