@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ksdk:manifest xmlns:ksdk="http://nxp.com/ksdk/2.0/ksdk_manifest_v3.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="SDK_2.x_middleware_nxp_wifi_wpa_supplicant_MIMXRT1062_manifest_v3_14" name="wpa_supplicant-rtos" brief="NXP Wi-Fi WPA Supplicant" format_version="3.14" api_version="2.0.0" xsi:schemaLocation="http://nxp.com/ksdk/2.0/ksdk_manifest_v3.0.xsd http://nxp.com/mcuxpresso/sdk/sdk_manifest_v3.14.xsd">
+<ksdk:manifest xmlns:ksdk="http://nxp.com/ksdk/2.0/ksdk_manifest_v3.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="SDK_2.x_middleware_nxp_wifi_wpa_supplicant_MCXN947_manifest_v3_14" name="wpa_supplicant-rtos" brief="NXP Wi-Fi WPA Supplicant" format_version="3.14" api_version="2.0.0" xsi:schemaLocation="http://nxp.com/ksdk/2.0/ksdk_manifest_v3.0.xsd http://nxp.com/mcuxpresso/sdk/sdk_manifest_v3.14.xsd">
 
   <externalDefinitions>
-    <definition extID="middleware.freertos-kernel.MIMXRT1062"/>
-    <definition extID="utility.debug_console.MIMXRT1062"/>
-    <definition extID="component.osa_free_rtos.MIMXRT1062"/>
-    <definition extID="middleware.wifi.MIMXRT1062"/>
-    <definition extID="middleware.lwip.MIMXRT1062"/>
-    <definition extID="middleware.mbedtls.MIMXRT1062"/>
-    <definition extID="MIMXRT1062xxxxA"/>
-    <definition extID="MIMXRT1062xxxxB"/>
+    <definition extID="middleware.freertos-kernel.MCXN947"/>
+    <definition extID="utility.debug_console.MCXN947"/>
+    <definition extID="component.osa_free_rtos.MCXN947"/>
+    <definition extID="middleware.wifi.MCXN947"/>
+    <definition extID="middleware.lwip.MCXN947"/>
+    <definition extID="middleware.mbedtls.MCXN947"/>
+    <definition extID="MCXN947"/>
     <definition extID="armgcc"/>
   </externalDefinitions>
-  <ksdk id="MCUXpressoSDK216000_middleware_nxp_wifi_wpa_supplicant_MIMXRT1062_manifest_v3_14" name="MCUXpressoSDK216000_middleware_nxp_wifi_wpa_supplicant_MIMXRT1062_manifest_v3_14" version="2.16.000" revision="2.16.000"/>
+  <ksdk id="MCUXpressoSDK216000_middleware_nxp_wifi_wpa_supplicant_MCXN947_manifest_v3_14" name="MCUXpressoSDK216000_middleware_nxp_wifi_wpa_supplicant_MCXN947_manifest_v3_14" version="2.16.000" revision="2.16.000"/>
   <components>
-    <component id="middleware.wireless.wpa_supplicant.rtos.MIMXRT1062" name="wpa_supplicant-rtos" brief="Wpa supplicant rtos" version="2.11.0" full_name="Wpa supplicant rtos" category="Wireless/wpa_supplicant" user_visible="true" type="middleware" package_base_path=".././" project_base_path="wpa_supplicant-rtos">
+    <component id="middleware.wireless.wpa_supplicant.rtos.MCXN947" name="wpa_supplicant-rtos" brief="Wpa supplicant rtos" version="2.11.0" full_name="Wpa supplicant rtos" category="Wireless/wpa_supplicant" user_visible="true" type="middleware" package_base_path=".././" project_base_path="wpa_supplicant-rtos">
       <defines>
         <define name="USE_RTOS" value="1"/>
         <define name="SDK_OS_FREE_RTOS" value=""/>
@@ -24,16 +23,13 @@
       </defines>
       <dependencies>
         <all>
-          <any_of>
-            <device_dependency value="MIMXRT1062xxxxA"/>
-            <device_dependency value="MIMXRT1062xxxxB"/>
-          </any_of>
-          <component_dependency value="middleware.freertos-kernel.MIMXRT1062"/>
-          <component_dependency value="utility.debug_console.MIMXRT1062"/>
-          <component_dependency value="component.osa_free_rtos.MIMXRT1062"/>
-          <component_dependency value="middleware.wifi.MIMXRT1062"/>
-          <component_dependency value="middleware.lwip.MIMXRT1062"/>
-          <component_dependency value="middleware.mbedtls.MIMXRT1062"/>
+          <component_dependency value="middleware.freertos-kernel.MCXN947"/>
+          <component_dependency value="utility.debug_console.MCXN947"/>
+          <component_dependency value="component.osa_free_rtos.MCXN947"/>
+          <component_dependency value="middleware.wifi.MCXN947"/>
+          <component_dependency value="middleware.lwip.MCXN947"/>
+          <component_dependency value="middleware.mbedtls.MCXN947"/>
+          <device_dependency value="MCXN947"/>
         </all>
       </dependencies>
       <source relative_path="./port/mbedtls" project_relative_path="port/mbedtls" type="c_include">
