@@ -41,7 +41,7 @@
 #define IANA_SECP384R1        20
 #define IANA_SECP521R1        21
 
-#if CONFIG_MBEDTLS_ECDH_LEGACY_CONTEXT
+#ifdef MBEDTLS_ECDH_LEGACY_CONTEXT
 #define ACCESS_ECDH(S, var) S->MBEDTLS_PRIVATE(var)
 #else
 #define ACCESS_ECDH(S, var) S->MBEDTLS_PRIVATE(ctx).MBEDTLS_PRIVATE(mbed_ecdh).MBEDTLS_PRIVATE(var)
@@ -2373,7 +2373,7 @@ struct crypto_ecdh *crypto_ecdh_init_owe(int group)
         goto fail;
     }
     mbedtls_ecdh_init(ctx);
-#if !CONFIG_MBEDTLS_ECDH_LEGACY_CONTEXT
+#if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     ctx->MBEDTLS_PRIVATE(var) = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
 #endif
 
@@ -2612,7 +2612,7 @@ struct wpabuf *crypto_ecdh_set_peerkey_owe(struct crypto_ecdh *ecdh, int inc_y, 
     if (ctx != NULL && peer != NULL)
     {
         mbedtls_ecp_copy(ACCESS_ECDH(&ctx, Qp), &(mbedtls_pk_ec(*peer))->MBEDTLS_PRIVATE(Q));
-#if !CONFIG_MBEDTLS_ECDH_LEGACY_CONTEXT
+#if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
         ctx->MBEDTLS_PRIVATE(var) = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
 #endif
     }
