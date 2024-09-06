@@ -987,7 +987,8 @@ out:
 
 static int wpa_drv_freertos_save_pairwise_key_params(void *priv, struct wpa_driver_set_key_params *params)
 {
-    struct freertos_drv_if_ctx *if_ctx              = NULL;
+    struct freertos_drv_if_ctx *if_ctx = NULL;
+    int ret = -1;
 
     if_ctx = priv;
 
@@ -1012,7 +1013,7 @@ static int wpa_drv_freertos_save_pairwise_key_params(void *priv, struct wpa_driv
         if (!if_ctx->key_params->ifname)
         {
             wpa_printf(MSG_DEBUG, "%s: failed to alloc ifname", __func__);
-            return -1;
+            goto out;
         }
     }
 
@@ -1023,7 +1024,7 @@ static int wpa_drv_freertos_save_pairwise_key_params(void *priv, struct wpa_driv
         if (!if_ctx->key_params->addr)
         {
             wpa_printf(MSG_DEBUG, "%s: failed to alloc addr", __func__);
-            return -1;
+            goto out;
         }
     }
 
@@ -1034,7 +1035,7 @@ static int wpa_drv_freertos_save_pairwise_key_params(void *priv, struct wpa_driv
         if (!if_ctx->key_params->seq)
         {
             wpa_printf(MSG_DEBUG, "%s: failed to alloc seq", __func__);
-            return -1;
+            goto out;
         }
         if_ctx->key_params->seq_len = params->seq_len;
     }
@@ -1046,7 +1047,7 @@ static int wpa_drv_freertos_save_pairwise_key_params(void *priv, struct wpa_driv
         if (!if_ctx->key_params->key)
         {
             wpa_printf(MSG_DEBUG, "%s: failed to alloc key", __func__);
-            return -1;
+            goto out;
         }
         if_ctx->key_params->key_len = params->key_len;
     }
@@ -1059,7 +1060,16 @@ static int wpa_drv_freertos_save_pairwise_key_params(void *priv, struct wpa_driv
 
     if_ctx->key_params->key_flag = params->key_flag;
 
-    return 0;
+    ret = 0;
+
+out:
+    if (ret)
+    {
+        wpa_drv_freertos_free_pairwise_key_params(if_ctx->key_params);
+        if_ctx->key_params = NULL;
+    }
+
+    return ret;
 }
 
 static void wpa_drv_freertos_set_rekey_info(void *priv, const u8 *kek, size_t kek_len, const u8 *kck, size_t kck_len, const u8 *replay_ctr)

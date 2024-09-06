@@ -106,8 +106,6 @@ K_EVENT_DEFINE(suppMainTaskEvent);
 
 #else
 
-const int WPA_SUPP_TASK_PRIO       = 2; //OS_PRIO_2;
-
 #define CONFIG_SUPP_MAIN_THREAD_STACK_SIZE 6144
 
 static sys_mbox_t event_queue;
@@ -118,7 +116,7 @@ OSA_TASK_HANDLE_DEFINE(supplicant_thread);
 OSA_EVENT_HANDLE_DEFINE(supplicant_event_Handle);
 
 /* OSA_TASKS: name, priority, instances, stackSz, useFloat */
-static OSA_TASK_DEFINE(supplicant_main_task, PRIORITY_RTOS_TO_OSA(2), 1, CONFIG_SUPP_MAIN_THREAD_STACK_SIZE, 0);
+static OSA_TASK_DEFINE(supplicant_main_task, PRIORITY_RTOS_TO_OSA((configMAX_PRIORITIES - 3)), 1, CONFIG_SUPP_MAIN_THREAD_STACK_SIZE, 0);
 #endif
 
 struct hapd_global

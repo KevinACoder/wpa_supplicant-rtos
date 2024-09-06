@@ -6,14 +6,14 @@ if (CONFIG_USE_middleware_wireless_wpa_supplicant_rtos)
 
 message("middleware_wireless_wpa_supplicant_rtos component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if(CONFIG_USE_middleware_freertos-kernel AND CONFIG_USE_utility_debug_console AND CONFIG_USE_component_osa_free_rtos AND CONFIG_USE_middleware_wifi AND CONFIG_USE_middleware_lwip AND CONFIG_USE_middleware_mbedtls)
+if(CONFIG_USE_middleware_freertos-kernel AND CONFIG_USE_utility_debug_console AND CONFIG_USE_component_osa_free_rtos AND CONFIG_USE_middleware_wifi_cli AND CONFIG_USE_middleware_wifi AND CONFIG_USE_middleware_lwip AND CONFIG_USE_middleware_mbedtls)
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/./port/mbedtls/supp_crypto.c
   ${CMAKE_CURRENT_LIST_DIR}/./src/common/wpa_common.c
   ${CMAKE_CURRENT_LIST_DIR}/./src/common/ieee802_11_common.c
   ${CMAKE_CURRENT_LIST_DIR}/./src/common/hw_features_common.c
   ${CMAKE_CURRENT_LIST_DIR}/./src/common/wpa_ctrl.c
-  ${CMAKE_CURRENT_LIST_DIR}/./src/common/cli.c
   ${CMAKE_CURRENT_LIST_DIR}/./src/drivers/driver_common.c
   ${CMAKE_CURRENT_LIST_DIR}/./src/drivers/drivers.c
   ${CMAKE_CURRENT_LIST_DIR}/./src/l2_packet/l2_packet_freertos.c

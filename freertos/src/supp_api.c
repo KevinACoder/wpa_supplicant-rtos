@@ -46,6 +46,10 @@
 #include "wpa_supplicant/dpp_supplicant.h"
 #endif
 
+#if CONFIG_11R
+#include "wpa_i.h"
+#endif
+
 #define EAP_TTLS_AUTH_PAP      1
 #define EAP_TTLS_AUTH_CHAP     2
 #define EAP_TTLS_AUTH_MSCHAP   4
@@ -3101,7 +3105,7 @@ int wpa_supp_start_ap(const struct netif *dev, struct wlan_network *network, int
         }
         else if (network->channel >= 165 && network->channel <= 169)
         {
-            conf->vht_oper_centr_freq_seg1_idx = 167;
+            conf->vht_oper_centr_freq_seg0_idx = 167;
         }
         else if (network->channel >= 173 && network->channel <= 177)
         {
@@ -3700,7 +3704,13 @@ int wpa_supp_notify_assoc(const struct netif *dev)
         ret = -1;
         goto out;
     }
-
+#if CONFIG_11R
+    /* If FT is configured and if ft re-assoc is not completed then
+     * no need to notify assoc.
+     */
+    if (wpa_key_mgmt_ft(wpa_s->wpa->key_mgmt) && !(wpa_s->wpa->ft_reassoc_completed))
+        goto out;
+#endif
     wpa_sm_notify_assoc(wpa_s->wpa, wpa_s->current_bss->bssid);
 
 out:

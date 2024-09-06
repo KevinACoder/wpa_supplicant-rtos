@@ -27,6 +27,10 @@
 #define CONFIG_KSDK_MBEDTLS 1
 #endif
 
+#if !CONFIG_IPV6
+#undef CONFIG_IPV6
+#endif
+
 #define CONFIG_WPA_SUPP_CRYPTO   1
 #define CONFIG_WPA_SUPP_AP       1
 #define CONFIG_HOSTAPD           1

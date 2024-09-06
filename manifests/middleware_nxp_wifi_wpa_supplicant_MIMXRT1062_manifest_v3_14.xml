@@ -5,6 +5,7 @@
     <definition extID="middleware.freertos-kernel.MIMXRT1062"/>
     <definition extID="utility.debug_console.MIMXRT1062"/>
     <definition extID="component.osa_free_rtos.MIMXRT1062"/>
+    <definition extID="middleware.wifi.cli.MIMXRT1062"/>
     <definition extID="middleware.wifi.MIMXRT1062"/>
     <definition extID="middleware.lwip.MIMXRT1062"/>
     <definition extID="middleware.mbedtls.MIMXRT1062"/>
@@ -12,7 +13,7 @@
     <definition extID="MIMXRT1062xxxxB"/>
     <definition extID="armgcc"/>
   </externalDefinitions>
-  <ksdk id="MCUXpressoSDK216000_middleware_nxp_wifi_wpa_supplicant_MIMXRT1062_manifest_v3_14" name="MCUXpressoSDK216000_middleware_nxp_wifi_wpa_supplicant_MIMXRT1062_manifest_v3_14" version="2.16.000" revision="2.16.000"/>
+  <ksdk id="MCUXpressoSDK216100_middleware_nxp_wifi_wpa_supplicant_MIMXRT1062_manifest_v3_14" name="MCUXpressoSDK216100_middleware_nxp_wifi_wpa_supplicant_MIMXRT1062_manifest_v3_14" version="2.16.100" revision="2.16.100"/>
   <components>
     <component id="middleware.wireless.wpa_supplicant.rtos.MIMXRT1062" name="wpa_supplicant-rtos" brief="Wpa supplicant rtos" version="2.11.0" full_name="Wpa supplicant rtos" category="Wireless/wpa_supplicant" user_visible="true" type="middleware" package_base_path=".././" project_base_path="wpa_supplicant-rtos">
       <defines>
@@ -31,6 +32,7 @@
           <component_dependency value="middleware.freertos-kernel.MIMXRT1062"/>
           <component_dependency value="utility.debug_console.MIMXRT1062"/>
           <component_dependency value="component.osa_free_rtos.MIMXRT1062"/>
+          <component_dependency value="middleware.wifi.cli.MIMXRT1062"/>
           <component_dependency value="middleware.wifi.MIMXRT1062"/>
           <component_dependency value="middleware.lwip.MIMXRT1062"/>
           <component_dependency value="middleware.mbedtls.MIMXRT1062"/>
@@ -40,13 +42,16 @@
         <files mask="wpa_supp_mbedtls_config.h"/>
         <files mask="wpa_supp_els_pkc_mbedtls_config.h"/>
         <files mask="wpa_supp_ele_s400_mbedtls_config.h"/>
+        <files mask="supp_crypto.h"/>
+      </source>
+      <source relative_path="./port/mbedtls" project_relative_path="port/mbedtls" type="src">
+        <files mask="supp_crypto.c"/>
       </source>
       <source relative_path="./src/common" project_relative_path="src/common" type="src">
         <files mask="wpa_common.c"/>
         <files mask="ieee802_11_common.c"/>
         <files mask="hw_features_common.c"/>
         <files mask="wpa_ctrl.c"/>
-        <files mask="cli.c"/>
         <files mask="sae.c"/>
         <files mask="dragonfly.c"/>
         <files mask="gas.c"/>
@@ -421,7 +426,6 @@
       </source>
       <source relative_path="./src/common" project_relative_path="src/common" type="c_include">
         <files mask="brcm_vendor.h"/>
-        <files mask="cli.h"/>
         <files mask="ctrl_iface_common.h"/>
         <files mask="defs.h"/>
         <files mask="dhcp.h"/>
