@@ -3719,6 +3719,31 @@ out:
     return ret;
 }
 
+void wpa_supp_notify_acs(const struct netif *dev)
+{
+#if CONFIG_HOSTAPD
+    struct hostapd_iface *hapd_s;
+    struct hostapd_config *conf;
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    hapd_s = get_hostapd_handle(dev);
+    if (!hapd_s)
+    {
+        goto out;
+    }
+
+    conf = hapd_s->conf;
+    conf->ht_capab &= ~HT_CAP_INFO_SHORT_GI40MHZ;
+    conf->vht_capab &= ~VHT_CAP_SHORT_GI_80;
+#if CONFIG_11AX
+    conf->he_oper_chwidth = -1;
+#endif
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+#endif
+}
+
 #if CONFIG_HOSTAPD
 int wpa_supp_get_sta_info(const struct netif *dev, unsigned char *sta_addr, unsigned char *is_11n_enabled)
 {

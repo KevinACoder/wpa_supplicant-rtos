@@ -117,6 +117,8 @@ int wpa_supp_ft_ds(const struct netif *dev, unsigned char *bssid);
 
 int wpa_supp_notify_assoc(const struct netif *dev);
 
+void wpa_supp_notify_acs(const struct netif *dev);
+
 int wpa_supp_get_sta_info(const struct netif *dev, unsigned char *sta_addr, unsigned char *is_11n_enabled);
 
 #if CONFIG_WPA_SUPP_WPS

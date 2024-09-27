@@ -184,6 +184,7 @@
 #define NEED_BASE64
 #define NEED_AES_CBC
 #define EAP_SERVER_WSC
+#define EAP_SERVER_IDENTITY
 #endif
 
 #if CONFIG_WPA_SUPP_P2P
