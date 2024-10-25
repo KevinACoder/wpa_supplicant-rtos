@@ -42,7 +42,9 @@
 #endif
 
 #ifdef CONFIG_DPP
+#if CONFIG_HOSTAPD
 #include "ap/dpp_hostapd.h"
+#endif
 #include "wpa_supplicant/dpp_supplicant.h"
 #endif
 
@@ -527,6 +529,44 @@ static int wpa_config_process_blob(struct wpa_config *config, char *name, u8 *da
     return 0;
 }
 #endif
+
+static int wpa_parse_intlist(int **int_list, char *val)
+{
+    int *list;
+    int count;
+    char *pos, *end;
+
+    os_free(*int_list);
+    *int_list = NULL;
+
+    pos   = val;
+    count = 0;
+    while (*pos != '\0')
+    {
+        if (*pos == ' ')
+            count++;
+        pos++;
+    }
+
+    list = os_malloc(sizeof(int) * (count + 2));
+    if (list == NULL)
+        return -1;
+    pos   = val;
+    count = 0;
+    while (*pos != '\0')
+    {
+        end = os_strchr(pos, ' ');
+
+        list[count++] = atoi(pos);
+        if (!end)
+            break;
+        pos = end + 1;
+    }
+    list[count] = -1;
+
+    *int_list = list;
+    return 0;
+}
 
 #if CONFIG_HOSTAPD
 #if CONFIG_WPA_SUPP_CRYPTO_AP_ENTERPRISE
@@ -1065,44 +1105,6 @@ fail:
     return -1;
 }
 #endif
-
-static int wpa_parse_intlist(int **int_list, char *val)
-{
-    int *list;
-    int count;
-    char *pos, *end;
-
-    os_free(*int_list);
-    *int_list = NULL;
-
-    pos   = val;
-    count = 0;
-    while (*pos != '\0')
-    {
-        if (*pos == ' ')
-            count++;
-        pos++;
-    }
-
-    list = os_malloc(sizeof(int) * (count + 2));
-    if (list == NULL)
-        return -1;
-    pos   = val;
-    count = 0;
-    while (*pos != '\0')
-    {
-        end = os_strchr(pos, ' ');
-
-        list[count++] = atoi(pos);
-        if (!end)
-            break;
-        pos = end + 1;
-    }
-    list[count] = -1;
-
-    *int_list = list;
-    return 0;
-}
 
 static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network *network)
 {
@@ -2937,6 +2939,7 @@ out:
     return ret;
 }
 
+#if CONFIG_HOSTAPD
 void wpa_supp_set_ap_max_num_sta(const struct netif *dev, unsigned int max_num_sta)
 {
     h_max_num_sta = (int)max_num_sta;
@@ -2998,7 +3001,6 @@ out:
 
     wpa_s->conf->country[0] = country[0];
     wpa_s->conf->country[1] = country[1];
-    wpa_s->conf->country[2] = country3;
 
 out:
     OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
@@ -3298,6 +3300,73 @@ out:
 
     return ret;
 }
+
+void wpa_supp_notify_acs(const struct netif *dev)
+{
+#if CONFIG_HOSTAPD
+    struct hostapd_iface *hapd_s;
+    struct hostapd_config *conf;
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    hapd_s = get_hostapd_handle(dev);
+    if (!hapd_s)
+    {
+        goto out;
+    }
+
+    conf = hapd_s->conf;
+    conf->ht_capab &= ~HT_CAP_INFO_SHORT_GI40MHZ;
+    conf->vht_capab &= ~VHT_CAP_SHORT_GI_80;
+#if CONFIG_11AX
+    conf->he_oper_chwidth = -1;
+#endif
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+#endif
+}
+
+int wpa_supp_get_sta_info(const struct netif *dev, unsigned char *sta_addr, unsigned char *is_11n_enabled)
+{
+    // struct wpa_supplicant *wpa_s;
+    int ret = 0;
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    struct hostapd_iface *hapd_s;
+    struct hostapd_data *hapd;
+    struct sta_info *sta;
+
+    hapd_s = get_hostapd_handle(dev);
+    if (!hapd_s)
+    {
+        ret = -1;
+        goto out;
+    }
+    hapd = hapd_s->bss[0];
+
+    sta = ap_get_sta(hapd, sta_addr);
+    if (!sta)
+    {
+        ret = -1;
+        goto out;
+    }
+
+    if (sta->flags & WLAN_STA_HT)
+    {
+        *is_11n_enabled = 1;
+    }
+    else
+    {
+        *is_11n_enabled = 0;
+    }
+
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+    return ret;
+}
+#endif
 
 void wpa_supp_set_bgscan(const struct netif *dev, const int short_interval, const int signal_threshold, const int long_interval)
 {
@@ -3718,74 +3787,6 @@ out:
 
     return ret;
 }
-
-void wpa_supp_notify_acs(const struct netif *dev)
-{
-#if CONFIG_HOSTAPD
-    struct hostapd_iface *hapd_s;
-    struct hostapd_config *conf;
-
-    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
-
-    hapd_s = get_hostapd_handle(dev);
-    if (!hapd_s)
-    {
-        goto out;
-    }
-
-    conf = hapd_s->conf;
-    conf->ht_capab &= ~HT_CAP_INFO_SHORT_GI40MHZ;
-    conf->vht_capab &= ~VHT_CAP_SHORT_GI_80;
-#if CONFIG_11AX
-    conf->he_oper_chwidth = -1;
-#endif
-out:
-    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
-#endif
-}
-
-#if CONFIG_HOSTAPD
-int wpa_supp_get_sta_info(const struct netif *dev, unsigned char *sta_addr, unsigned char *is_11n_enabled)
-{
-    // struct wpa_supplicant *wpa_s;
-    int ret = 0;
-
-    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
-
-    struct hostapd_iface *hapd_s;
-    struct hostapd_data *hapd;
-    struct sta_info *sta;
-
-    hapd_s = get_hostapd_handle(dev);
-    if (!hapd_s)
-    {
-        ret = -1;
-        goto out;
-    }
-    hapd = hapd_s->bss[0];
-
-    sta = ap_get_sta(hapd, sta_addr);
-    if (!sta)
-    {
-        ret = -1;
-        goto out;
-    }
-
-    if (sta->flags & WLAN_STA_HT)
-    {
-        *is_11n_enabled = 1;
-    }
-    else
-    {
-        *is_11n_enabled = 0;
-    }
-
-out:
-    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
-
-    return ret;
-}
-#endif
 
 #if CONFIG_WPA_SUPP_WPS
 int wpa_supp_start_wps_pbc(const struct netif *dev, int is_ap)
@@ -4911,6 +4912,7 @@ out:
     return ret;
 }
 
+#if CONFIG_HOSTAPD
 static int wpa_supp_add_acl_maclist(struct mac_acl_entry **acl, int *num, int vlan_id, const u8 *addr)
 {
     struct mac_acl_entry *newacl;
@@ -4997,6 +4999,7 @@ int wpa_supp_set_mac_acl(const struct netif *dev, int filter_mode, char mac_coun
     }
     return 0;
 }
+#endif /* CONFIG_HOSTAPD */
 
 static void (*msg_cb_ptr)(const char *txt, size_t len);
 
@@ -5082,6 +5085,7 @@ int wpa_supp_deinit(void)
     return 0;
 }
 
+#if CONFIG_HOSTAPD
 void hostapd_connected_sta_list(wifi_sta_info_t *si, wifi_sta_list_t *sl)
 {
     struct hostapd_iface *hapd_s;
@@ -5157,3 +5161,4 @@ out:
     return ret;
 
 }
+#endif /* CONFIG_HOSTAPD */

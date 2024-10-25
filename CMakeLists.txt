@@ -215,16 +215,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 src/eap_peer/eap_fast_pac.c
                 src/eap_peer/eap_gtc.c
                 src/eap_common/eap_fast_common.c
-                hostapd/hlr_auc_gw.c
-                hostapd/ctrl_iface.c
-                hostapd/eap_register.c
-                hostapd/config_file.h
-                hostapd/ctrl_iface.h
-                hostapd/eap_register.h
-                hostapd/README
                 src/rsn_supp/wpa_ft.c
                 src/ap/wnm_ap.c
-                src/ap/eth_p_oui.c
                 src/eap_server/eap_server_wsc.c
                 src/eap_server/eap_server_tls.c
                 src/radius/radius_server.c
@@ -242,7 +234,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 src/eap_server/eap_server_fast.c
                 src/eap_server/eap_server_sim.c
                 src/eap_server/eap_server_aka.c
-                src/ap/acs.c
                 src/ap/acs.h
                 src/utils/eloop_freertos.c
                 src/crypto/milenage.c
@@ -260,7 +251,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 src/common/gas_server.c
                 src/utils/json.c
                 src/tls/asn1.c
-                src/ap/dpp_hostapd.c
                 src/ap/gas_query_ap.c
                 src/ap/gas_serv.c
                 src/ap/accounting.h
@@ -275,8 +265,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 src/ap/ctrl_iface_ap.h
                 src/ap/dfs.h
                 src/ap/dhcp_snoop.h
-                src/ap/dpp_hostapd.h
-                src/ap/eth_p_oui.h
                 src/ap/fils_hlp.h
                 src/ap/gas_query_ap.h
                 src/ap/gas_serv.h
@@ -509,4 +497,22 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                  freertos/src
         BASE_PATH ${SdkRootDirPath}/middleware/wireless/wpa_supplicant-rtos/
     )
+
+    if (CONFIG_HOSTAPD)
+        mcux_add_source(
+            SOURCES hostapd/hlr_auc_gw.c
+                    hostapd/ctrl_iface.c
+                    hostapd/eap_register.c
+                    hostapd/config_file.h
+                    hostapd/ctrl_iface.h
+                    hostapd/eap_register.h
+                    hostapd/README
+                    src/ap/dpp_hostapd.c
+                    src/ap/dpp_hostapd.h
+                    src/ap/acs.c
+                    src/ap/eth_p_oui.c
+                    src/ap/eth_p_oui.h
+            BASE_PATH ${SdkRootDirPath}/middleware/wireless/wpa_supplicant-rtos/
+        )
+    endif()
 endif()

@@ -2838,12 +2838,14 @@ static struct hostapd_hw_modes *wpa_drv_freertos_get_hw_feature_data(void *if_pr
     }
 #endif
 
-    status = dev_ops->set_modes(if_ctx->dev_priv, modes);
-
-    if (status)
+    if (dev_ops->set_modes)
     {
-        wpa_printf(MSG_ERROR, "%s: set modes failed", __func__);
-        goto fail;
+        status = dev_ops->set_modes(if_ctx->dev_priv, modes);
+        if (status)
+        {
+            wpa_printf(MSG_ERROR, "%s: set modes failed", __func__);
+            goto fail;
+        }
     }
 
     return modes;

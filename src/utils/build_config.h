@@ -32,7 +32,6 @@
 #endif
 
 #define CONFIG_WPA_SUPP_CRYPTO   1
-#define CONFIG_HOSTAPD           1
 
 #define WPA_SUPPLICANT_CLEANUP_INTERVAL 120
 

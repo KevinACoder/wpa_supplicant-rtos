@@ -119,6 +119,7 @@ OSA_EVENT_HANDLE_DEFINE(supplicant_event_Handle);
 static OSA_TASK_DEFINE(supplicant_main_task, PRIORITY_RTOS_TO_OSA((configMAX_PRIORITIES - 3)), 1, CONFIG_SUPP_MAIN_THREAD_STACK_SIZE, 0);
 #endif
 
+#if CONFIG_HOSTAPD
 struct hapd_global
 {
     void **drv_priv;
@@ -129,6 +130,7 @@ static struct hapd_global hglobal;
 
 static void hostapd_main_task(osa_task_param_t arg);
 static void hostapd_task_cleanup(void);
+#endif
 
 #if CONFIG_MATCH_IFACE
 static int wpa_supplicant_init_match(struct wpa_global *global)
@@ -603,7 +605,9 @@ static void supplicant_main_task(osa_task_param_t arg)
 
     iface_count = 1;
 #if !CONFIG_HOSTAPD
+#if 0
     iface_count++;
+#endif
 #endif
 
     ifaces = os_zalloc(iface_count * sizeof(struct wpa_interface));
@@ -645,6 +649,8 @@ static void supplicant_main_task(osa_task_param_t arg)
     }
 
 #if !CONFIG_HOSTAPD
+/* TODO: add verified code when we want to impl wpa_supplicant AP mode */
+#if 0
     netif = net_get_uap_interface();
 
     if (netif != NULL)
@@ -659,6 +665,7 @@ static void supplicant_main_task(osa_task_param_t arg)
         exitcode = -1;
         goto out;
     }
+#endif
 #else
     hostapd_main_task(arg);
 #endif
@@ -841,6 +848,7 @@ int stop_wpa_supplicant(void)
     return 0;
 }
 
+#if CONFIG_HOSTAPD
 #if !CONFIG_NO_HOSTAPD_LOGGER
 static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module, int level, const char *txt, size_t len)
 {
@@ -1537,3 +1545,4 @@ static void hostapd_task_cleanup(void)
 
     return;
 }
+#endif /* CONFIG_HOSTAPD */
