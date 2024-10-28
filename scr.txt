@@ -1,0 +1,11 @@
+Name: wpa_supplicant-rtos
+Outgoing License: BSD 3-Clause "New" or "Revised" License
+License File: LICENSE
+Version: 2.11.0
+Format: source code
+Description: WPA Supplicant & HOSTAPD
+Location: https://github.com/NXP/wifi_nxp
+Origin: NXP (BSD-3-Clause)
+        wpa supplicant (BSD 3-Clause) - https://w1.fi/wpa_supplicant/
+        hostapd (BSD 3-Clause) - https://w1.fi/hostapd/
+        mbedtls (Apache License 2.0) - https://github.com/ARMmbed/mbedtls/releases/
