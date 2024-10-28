@@ -1,0 +1,13 @@
+
+menu "wpa_supplicant-rtos"
+    
+    config MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos
+        bool "Component middleware.wireless.wpa_supplicant.rtos"
+        select MCUX_COMPONENT_middleware.freertos-kernel
+        select MCUX_COMPONENT_utility.debug_console
+        select MCUX_COMPONENT_component.osa_free_rtos
+        select MCUX_COMPONENT_middleware.wifi.cli
+        select MCUX_COMPONENT_middleware.wifi
+        select MCUX_COMPONENT_middleware.lwip
+        select MCUX_COMPONENT_middleware.mbedtls
+endmenu

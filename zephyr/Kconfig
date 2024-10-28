@@ -1,0 +1,218 @@
+# Nordic WiFi driver for nRF52840 and nRF5340
+#
+# Copyright (c) 2022 Nordic Semiconductor
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+config WPA_SUPP
+    bool "WPA supplicant support"
+    depends on  NET_SOCKETS
+    depends on  NET_SOCKETS_POSIX_NAMES || POSIX_API
+    select NET_SOCKETS_PACKET
+    select NET_L2_WIFI_MGMT
+    help
+      WPA supplicant implements 802.1X related functions.
+
+config HOSTAPD
+    bool "HOSTAPD support"
+    depends on WPA_SUPP
+    select WPA_SUPP_AP
+    default y
+
+if WPA_SUPP
+
+config WPA_SUPP_THREAD_STACK_SIZE
+    int "Stack size for wpa_supplicant thread"
+    default 8192
+
+config WEP
+    bool "WEP (Legacy crypto) support"
+
+config WPA_SUPP_CRYPTO
+    bool "Crypto support for WiFi"
+    select WEP
+    select MBEDTLS
+    # select NRF_SECURITY
+    # select MBEDTLS_CIPHER_MODE_CBC
+    # select MBEDTLS_CIPHER_MODE_CTR
+    # select MBEDTLS_LEGACY_CRYPTO_C
+    # select MBEDTLS_ECP_C
+    # select MBEDTLS_CTR_DRBG_C
+    # select MBEDTLS_ENTROPY_C
+    # select MBEDTLS_PK_WRITE_C
+    # select MBEDTLS_KEY_EXCHANGE_ALL_ENABLED
+    default y
+
+config KSDK_MBEDTLS
+    bool "ksdk mbedtls"
+    select WPA_SUPP_CRYPTO
+    default y
+
+# Enable it by default when PSA ready
+config WPA_SUPP_CRYPTO_MBEDTLS_PSA
+    bool "Crypto mbedtls use PSA"
+    depends on WPA_SUPP_CRYPTO && MBEDTLS_PSA_CRYPTO_C
+    default n
+
+# Needed for internal entropy
+#config MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+#    default n if WPA_SUPP_CRYPTO
+
+# To fix MAC_MD5 Kconfig warning
+config NET_TCP_ISN_RFC6528
+    default n if WPA_SUPP_CRYPTO
+
+config WPA_SUPP_CRYPTO_ENTERPRISE
+    bool "Enterprise Crypto support for WiFi"
+
+config WPA_SUPP_CRYPTO_AP_ENTERPRISE
+    bool "AP Enterprise Crypto support for WiFi"
+
+config WPA_SUPP_WPA3
+    bool "WPA3 support"
+    select WPA_SUPP_CRYPTO
+    default y
+
+config WPA_SUPP_AP
+    bool "AP mode support"
+    select WPA_SUPP_CRYPTO
+
+config WPA_SUPP_WPS
+    bool "WPS support"
+
+config WPA_SUPP_P2P
+    bool "P2P mode support"
+    select WPA_SUPP_AP
+    select WPA_SUPP_WPS
+
+config WPA_SUPP_DPP
+    bool "DPP support"
+    default y
+
+config HOSTAPD_CLEANUP_INTERVAL
+    int "Hostapd cleanup interval"
+    default 120
+
+config WPA_CLI
+    bool "CLI support for wpa_supplicant"
+    default n
+
+config EAP_TLS
+    bool "EAP TLS method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+config IEEE8021X_EAPOL
+    bool "IEEE 802.1X EAPOL"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+config EAP_PEAP
+    bool "EAP PEAP method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+config EAP_TTLS
+    bool "EAP TTLS method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+config EAP_MD5
+    bool "EAP MD5 method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default n
+
+config EAP_MSCHAPV2
+    bool "EAP MSCHAPV2 method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+config EAP_LEAP
+    bool "EAP LEAP method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default n
+
+config EAP_PSK
+    bool "EAP PSK method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default n
+
+config EAP_FAST
+    bool "EAP FAST method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+config EAP_PAX
+    bool "EAP PAX method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default n
+
+config EAP_SAKE
+    bool "EAP SAKE method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default n
+
+config EAP_GPSK
+    bool "EAP GPSK method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default n
+
+config EAP_PWD
+    bool "EAP PWD method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default n
+
+config EAP_EKE
+    bool "EAP EKE method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default n
+
+config EAP_IKEV2
+    bool "EAP IKEV2 method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default n
+
+config EAP_GTC
+    bool "EAP GTC method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+config EAP_SIM
+    bool "EAP SIM method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+config EAP_AKA
+    bool "EAP AKA method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+config EAP_AKA_PRIME
+    bool "EAP AKA PRIME method"
+    depends on WPA_SUPP_CRYPTO_ENTERPRISE
+    default y
+
+module = WPA_SUPP
+module-str = WPA supplicant
+source "subsys/logging/Kconfig.template.log_config"
+
+config WPA_SUPP_DEBUG_LEVEL
+    int
+    default 0 if WPA_SUPP_LOG_LEVEL_DBG # MSG_EXCESSIVE
+    default 3 if WPA_SUPP_LOG_LEVEL_INF # MSG_INFO
+    default 4 if WPA_SUPP_LOG_LEVEL_WRN # MSG_WARNING
+    default 5 if WPA_SUPP_LOG_LEVEL_ERR # MSG_ERROR
+    default 6
+    help
+      Minimum priority level of a debug message emitted by WPA supplicant that
+      is compiled-in the firmware. See wpa_debug.h file of the supplicant for
+      available levels and functions for emitting the messages. Note that
+      runtime filtering can also be configured in addition to the compile-time
+      filtering.
+
+# Debug logs need more buffer space
+config LOG_BUFFER_SIZE
+    default 4096 if WPA_SUPP_LOG_LEVEL_DBG
+    default 2048
+endif
