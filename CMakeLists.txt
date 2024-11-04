@@ -497,22 +497,26 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                  freertos/src
         BASE_PATH ${SdkRootDirPath}/middleware/wireless/wpa_supplicant-rtos/
     )
+endif()
 
-    if (CONFIG_HOSTAPD)
-        mcux_add_source(
-            SOURCES hostapd/hlr_auc_gw.c
-                    hostapd/ctrl_iface.c
-                    hostapd/eap_register.c
-                    hostapd/config_file.h
-                    hostapd/ctrl_iface.h
-                    hostapd/eap_register.h
-                    hostapd/README
-                    src/ap/dpp_hostapd.c
-                    src/ap/dpp_hostapd.h
-                    src/ap/acs.c
-                    src/ap/eth_p_oui.c
-                    src/ap/eth_p_oui.h
-            BASE_PATH ${SdkRootDirPath}/middleware/wireless/wpa_supplicant-rtos/
-        )
-    endif()
+if (CONFIG_MCUX_COMPONENT_hostapd)
+    mcux_add_configuration(
+        CC  "-DCONFIG_HOSTAPD=1"
+    )
+
+    mcux_add_source(
+        SOURCES hostapd/hlr_auc_gw.c
+                hostapd/ctrl_iface.c
+                hostapd/eap_register.c
+                hostapd/config_file.h
+                hostapd/ctrl_iface.h
+                hostapd/eap_register.h
+                hostapd/README
+                src/ap/dpp_hostapd.c
+                src/ap/dpp_hostapd.h
+                src/ap/acs.c
+                src/ap/eth_p_oui.c
+                src/ap/eth_p_oui.h
+        BASE_PATH ${SdkRootDirPath}/middleware/wireless/wpa_supplicant-rtos/
+    )
 endif()
