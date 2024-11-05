@@ -11,9 +11,8 @@ menu "wpa_supplicant-rtos"
         select MCUX_COMPONENT_middleware.lwip
         select MCUX_COMPONENT_middleware.mbedtls
 
-    config MCUX_COMPONENT_hostapd
+    config MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos.hostapd
         bool "Supplicant AP Support"
         depends on MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos
-        depends on MCUX_COMPONENT_wifi_softap
         default y
 endmenu

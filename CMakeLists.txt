@@ -499,7 +499,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
     )
 endif()
 
-if (CONFIG_MCUX_COMPONENT_hostapd)
+if (CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos.hostapd)
     mcux_add_configuration(
         CC  "-DCONFIG_HOSTAPD=1"
     )
@@ -517,6 +517,14 @@ if (CONFIG_MCUX_COMPONENT_hostapd)
                 src/ap/acs.c
                 src/ap/eth_p_oui.c
                 src/ap/eth_p_oui.h
+        BASE_PATH ${SdkRootDirPath}/middleware/wireless/wpa_supplicant-rtos/
+    )
+
+    mcux_add_include(
+        INCLUDES .
+                 src
+                 src/ap
+                 hostapd
         BASE_PATH ${SdkRootDirPath}/middleware/wireless/wpa_supplicant-rtos/
     )
 endif()
