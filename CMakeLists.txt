@@ -500,6 +500,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
 endif()
 
 if (CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos.hostapd)
+    mcux_component_version(2.11.0)
+
     mcux_add_configuration(
         CC  "-DCONFIG_HOSTAPD=1"
     )
