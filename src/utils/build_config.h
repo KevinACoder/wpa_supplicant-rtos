@@ -22,6 +22,13 @@
 #define CONFIG_WPA_SUPP 1
 #endif
 
+#if defined(CONFIG_NCP_SUPP) || defined(CONFIG_WPA_SUPP_MBEDTLS)
+#if !CONFIG_HOSTAPD
+#undef CONFIG_HOSTAPD
+#define CONFIG_HOSTAPD 1
+#endif
+#endif
+
 #if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS)
 #define CONFIG_FREERTOS 1
 #define CONFIG_KSDK_MBEDTLS 1
