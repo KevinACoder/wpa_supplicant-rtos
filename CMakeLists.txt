@@ -8,7 +8,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
         CC  "-fomit-frame-pointer -Wno-unused-function"
     )
     mcux_add_configuration(
-        CC  "-DUSE_RTOS=1 -DSDK_OS_FREE_RTOS -DFSL_OSA_TASK_ENABLE=1 -DPRINTF_ADVANCED_ENABLE=1 -DMBEDTLS_CONFIG_FILE=\\\"wpa_supp_mbedtls_config.h\\\""
+        CC  "-DUSE_RTOS=1 -DSDK_OS_FREE_RTOS -DFSL_OSA_TASK_ENABLE=1 -DPRINTF_ADVANCED_ENABLE=1"
     )
     mcux_add_source(
         SOURCES port/mbedtls/wpa_supp_mbedtls_config.h
