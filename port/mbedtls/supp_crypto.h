@@ -20,7 +20,7 @@ void supp_set_mbedtls_set_time();
 
 #if defined ( __GNUC__ )
 #if defined(MBEDTLS_HAVE_TIME) || defined(MBEDTLS_HAVE_TIME_DATE)
-#include <sys/time.h>
+#include <time.h>
 int _gettimeofday(struct timeval *tv, void *tzvp);
 #endif
 #endif
