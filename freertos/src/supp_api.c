@@ -3387,7 +3387,25 @@ void wpa_supp_set_bgscan(const struct netif *dev, const int short_interval, cons
 
     wpa_s->conf->bgscan = os_strdup(bgscan_str);
 
-    //wpa_supplicant_reset_bgscan(wpa_s);
+    wpa_supplicant_reset_bgscan(wpa_s);
+
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+}
+
+void wpa_supp_stop_bgscan(const struct netif *dev)
+{
+    struct wpa_supplicant *wpa_s;
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        goto out;
+    }
+
+    wpa_supplicant_stop_bgscan(wpa_s);
 
 out:
     OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);

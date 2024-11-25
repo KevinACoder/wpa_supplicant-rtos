@@ -90,6 +90,9 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 wpa_supplicant/mbo.c
                 wpa_supplicant/wnm_sta.c
                 wpa_supplicant/README
+                wpa_supplicant/bgscan.c
+                wpa_supplicant/bgscan_simple.c
+                wpa_supplicant/bgscan_learn.c
                 src/utils/wpa_debug.c
                 freertos/src/supp_main.c
                 freertos/src/supp_api.c

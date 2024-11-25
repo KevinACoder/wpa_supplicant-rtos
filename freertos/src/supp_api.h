@@ -109,6 +109,8 @@ int wpa_supp_mbo_set_oce(const struct netif *dev, unsigned char oce);
 
 void wpa_supp_set_bgscan(const struct netif *dev, const int short_interval, const int signal_threshold, const int long_interval);
 
+void wpa_supp_stop_bgscan(const struct netif *dev);
+
 int wpa_supp_set_okc(const struct netif *dev, unsigned char okc);
 
 int wpa_supp_roam(const struct netif *dev, unsigned char *bssid);
