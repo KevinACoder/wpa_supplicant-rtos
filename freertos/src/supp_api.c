@@ -3315,11 +3315,14 @@ void wpa_supp_notify_acs(const struct netif *dev)
         goto out;
     }
 
+    struct hostapd_hw_modes *mode = hapd_s->current_mode;
+
     conf = hapd_s->conf;
     conf->ht_capab &= ~HT_CAP_INFO_SHORT_GI40MHZ;
+    conf->ht_capab &= ~HT_CAP_INFO_SUPP_CHANNEL_WIDTH_SET;
     conf->vht_capab &= ~VHT_CAP_SHORT_GI_80;
 #if CONFIG_11AX
-    conf->he_oper_chwidth = -1;
+    mode->he_capab[IEEE80211_MODE_AP].phy_cap[0] &= ~HE_PHYCAP_CHANNEL_WIDTH_SET_40MHZ_80MHZ_IN_5G;
 #endif
 out:
     OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);

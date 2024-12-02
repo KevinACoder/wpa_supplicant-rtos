@@ -505,7 +505,13 @@ void process_wpa_supplicant_event()
 
 #if CONFIG_HOSTAPD
                 if (msg->hostapd)
+                {
+                    if(msg->event == EVENT_ACS_CHANNEL_SELECTED)
+                    {
+                        OSA_TimeDelay(10);
+                    }
                     hostapd_event(msg->ctx, msg->event, msg->data);
+                }
                 else
 #endif
                     wpa_supplicant_event(msg->ctx, msg->event, msg->data);
