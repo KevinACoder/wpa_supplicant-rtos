@@ -3070,6 +3070,7 @@ int wpa_supp_start_ap(const struct netif *dev, struct wlan_network *network, int
     if (bandwidth == 1)
     {
         conf->secondary_channel = 0;
+        conf->obss_interval     = 0;
         conf->ht_capab &= ~HT_CAP_INFO_SUPP_CHANNEL_WIDTH_SET;
         conf->ht_capab &= ~HT_CAP_INFO_SHORT_GI40MHZ;
 
