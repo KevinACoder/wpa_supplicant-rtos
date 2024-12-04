@@ -36,7 +36,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 src/utils/dl_list.h
                 wpa_supplicant/ap.h
                 wpa_supplicant/autoscan.h
-                wpa_supplicant/bgscan.h
                 wpa_supplicant/bss.h
                 wpa_supplicant/bssid_ignore.h
                 wpa_supplicant/config.h
@@ -90,9 +89,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 wpa_supplicant/mbo.c
                 wpa_supplicant/wnm_sta.c
                 wpa_supplicant/README
-                wpa_supplicant/bgscan.c
-                wpa_supplicant/bgscan_simple.c
-                wpa_supplicant/bgscan_learn.c
                 src/utils/wpa_debug.c
                 freertos/src/supp_main.c
                 freertos/src/supp_api.c

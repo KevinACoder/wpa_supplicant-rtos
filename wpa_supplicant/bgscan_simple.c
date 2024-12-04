@@ -209,7 +209,6 @@ static void bgscan_simple_notify_signal_change(
                "(above=%d current_signal=%d current_noise=%d "
                "current_txrate=%d))",
                above, current_signal, current_noise, current_txrate);
-    PRINTF("%d %d %d %d\r\n", data->scan_interval, data->long_interval, !above, data->max_short_scans);
     if (data->scan_interval == data->long_interval && !above)
     {
         wpa_printf(MSG_DEBUG,

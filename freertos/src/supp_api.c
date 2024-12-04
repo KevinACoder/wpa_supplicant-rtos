@@ -3371,49 +3371,6 @@ out:
 }
 #endif
 
-void wpa_supp_set_bgscan(const struct netif *dev, const int short_interval, const int signal_threshold, const int long_interval)
-{
-    struct wpa_supplicant *wpa_s;
-    char bgscan_str[128] = {0};
-
-    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
-
-    wpa_s = get_wpa_s_handle(dev);
-    if (!wpa_s)
-    {
-        goto out;
-    }
-
-    snprintf(bgscan_str, 128, "simple:%d:%d:%d", short_interval, signal_threshold, long_interval);
-
-    os_free(wpa_s->conf->bgscan);
-
-    wpa_s->conf->bgscan = os_strdup(bgscan_str);
-
-    wpa_supplicant_reset_bgscan(wpa_s);
-
-out:
-    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
-}
-
-void wpa_supp_stop_bgscan(const struct netif *dev)
-{
-    struct wpa_supplicant *wpa_s;
-
-    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
-
-    wpa_s = get_wpa_s_handle(dev);
-    if (!wpa_s)
-    {
-        goto out;
-    }
-
-    wpa_supplicant_stop_bgscan(wpa_s);
-
-out:
-    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
-}
-
 int wpa_supp_set_okc(const struct netif *dev, unsigned char okc)
 {
     struct wpa_supplicant *wpa_s;
