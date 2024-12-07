@@ -36,6 +36,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 src/utils/dl_list.h
                 wpa_supplicant/ap.h
                 wpa_supplicant/autoscan.h
+                wpa_supplicant/bgscan.h
                 wpa_supplicant/bss.h
                 wpa_supplicant/bssid_ignore.h
                 wpa_supplicant/config.h
