@@ -7,6 +7,9 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
     mcux_add_armgcc_configuration(
         CC  "-fomit-frame-pointer -Wno-unused-function"
     )
+    mcux_add_mdk_configuration(
+        LD  "--library_type=microlib"
+    )
     mcux_add_configuration(
         CC  "-DUSE_RTOS=1 -DSDK_OS_FREE_RTOS -DFSL_OSA_TASK_ENABLE=1 -DPRINTF_ADVANCED_ENABLE=1"
     )
