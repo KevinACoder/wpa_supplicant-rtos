@@ -1116,7 +1116,7 @@ static struct wpa_bss *wpas_pasn_allowed(struct wpa_supplicant *wpa_s, const u8 
         return NULL;
     }
 
-    rsne = wpa_bss_get_ie(bss, WLAN_EID_RSN);
+    rsne = wpa_bss_get_rsne(wpa_s, bss, NULL, false);
     if (!rsne)
     {
         wpa_printf(MSG_DEBUG, "PASN: BSS without RSNE");
@@ -1173,14 +1173,14 @@ static void wpas_pasn_auth_start_cb(struct wpa_radio_work *work, int deinit)
         goto fail;
     }
 
-    rsne = wpa_bss_get_ie(bss, WLAN_EID_RSN);
+    rsne = wpa_bss_get_rsne(wpa_s, bss, NULL, false);
     if (!rsne)
     {
         wpa_printf(MSG_DEBUG, "PASN: BSS without RSNE");
         goto fail;
     }
 
-    rsnxe = wpa_bss_get_ie(bss, WLAN_EID_RSNX);
+    rsnxe = wpa_bss_get_rsnxe(wpa_s, bss, NULL, false);
 
     ret = wpas_pasn_start(wpa_s, awork->bssid, awork->akmp, awork->cipher, awork->group, bss->freq, rsne,
                           *(rsne + 1) + 2, rsnxe, rsnxe ? *(rsnxe + 1) + 2 : 0, awork->network_id, awork->comeback);

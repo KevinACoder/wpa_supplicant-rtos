@@ -706,9 +706,14 @@ static void supplicant_main_task(osa_task_param_t arg)
         wpa_s->conf->wps_cred_processing = 2;
         wpa_s->conf->filter_ssids = 1;
         if (i == 0)
+        {
             wpa_s->conf->ap_scan = 1;
+            wpa_s->conf->rsn_overriding = 2;
+        }
         else
+        {
             wpa_s->conf->ap_scan = 2;
+        }
     }
  
 #if CONFIG_MATCH_IFACE

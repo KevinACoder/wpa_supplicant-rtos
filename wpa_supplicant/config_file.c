@@ -921,6 +921,7 @@ static void wpa_config_write_network(FILE *f, struct wpa_ssid *ssid)
 #ifdef CONFIG_HE_OVERRIDES
     INT(disable_he);
 #endif /* CONFIG_HE_OVERRIDES */
+	INT_DEF(rsn_overriding, RSN_OVERRIDING_NOT_SET);
 
 #undef STR
 #undef INT
@@ -1543,6 +1544,8 @@ static void wpa_config_write_global(FILE *f, struct wpa_config *config)
         fprintf(f, "extended_key_id=%d\n", config->extended_key_id);
     if (config->wowlan_disconnect_on_deinit)
         fprintf(f, "wowlan_disconnect_on_deinit=%d\n", config->wowlan_disconnect_on_deinit);
+	if (config->rsn_overriding)
+		fprintf(f, "rsn_overriding=%d\n", config->rsn_overriding);
 }
 
 #endif /* CONFIG_NO_CONFIG_WRITE */
