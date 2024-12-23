@@ -1348,6 +1348,10 @@ static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network 
                     bss->wpa_key_mgmt = WPA_KEY_MGMT_IEEE8021X_SUITE_B;
                     bss->tls_flags |= TLS_CONN_SUITEB;
                 }
+                else if (network->security.wpa3_ent)
+                {
+                    bss->wpa_key_mgmt = WPA_KEY_MGMT_IEEE8021X_SHA256;
+                }
                 else
                 {
                     bss->wpa_key_mgmt = WPA_KEY_MGMT_IEEE8021X;
@@ -2078,6 +2082,10 @@ int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
                     {
                         ssid->key_mgmt  = WPA_KEY_MGMT_IEEE8021X_SUITE_B;
                         openssl_ciphers = "SUITEB128";
+                    }
+                    else if (network->security.wpa3_ent)
+                    {
+                        ssid->key_mgmt  = WPA_KEY_MGMT_IEEE8021X_SHA256;
                     }
                     else
                     {
