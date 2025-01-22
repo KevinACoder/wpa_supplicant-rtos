@@ -1230,7 +1230,7 @@ static int wpa_drv_freertos_get_capa(void *priv, struct wpa_driver_capa *capa)
     capa->flags |= WPA_DRIVER_FLAGS_AP_MLME;
     capa->flags |= WPA_DRIVER_FLAGS_AP_TEARDOWN_SUPPORT;
     capa->flags |= WPA_DRIVER_FLAGS_AP_CSA;
-#if !defined(RW610) && !defined(SD8801)
+#if !defined(RW610) && !defined(SD8801) && !defined(IW610)
     capa->flags |= WPA_DRIVER_FLAGS_HT_2040_COEX;
 #endif
     capa->flags |= WPA_DRIVER_FLAGS_HE_CAPABILITIES;

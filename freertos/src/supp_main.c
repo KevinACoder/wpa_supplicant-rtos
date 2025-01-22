@@ -1255,7 +1255,7 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
     struct hostapd_config *conf;
     int errors = 0;
     size_t i;
-#ifdef RW610
+#if defined(RW610) || defined(IW610)
     int aCWmin = 4, aCWmax = 10;
     struct hostapd_wmm_ac_params ac_bk = {aCWmin, aCWmax, 9, 0, 0}; /* background traffic */
     struct hostapd_wmm_ac_params ac_be = {aCWmin, aCWmax - 4, 5, 0, 0}; /* best effort traffic */
@@ -1282,7 +1282,7 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
         // fclose(f);
         return NULL;
     }
-#ifdef RW610
+#if defined(RW610) || defined(IW610)
     conf->wmm_ac_params[0] = ac_be;
     conf->wmm_ac_params[1] = ac_bk;
     conf->wmm_ac_params[2] = ac_vi;
@@ -1306,7 +1306,7 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
     bss->logger_stdout       = 0xffff;
     bss->nas_identifier      = os_strdup("ap.example.com");
     bss->eap_sim_db          = os_strdup("unix:/tmp/hlr_auc_gw.sock");
-#ifdef RW610
+#if defined(RW610) || defined(IW610)
     os_memcpy(conf->country, "US ", 3);
 #else	
     os_memcpy(conf->country, "WW ", 3);
