@@ -2854,10 +2854,10 @@ static int wpa_supplicant_event_associnfo(struct wpa_supplicant *wpa_s, union wp
         l -= len;
         p += len;
     }
-    if (!found && data->assoc_info.req_ies)
-        wpa_sm_set_assoc_wpa_ie(wpa_s->wpa, NULL, 0);
-    if (!found_x && data->assoc_info.req_ies)
-        wpa_sm_set_assoc_rsnxe(wpa_s->wpa, NULL, 0);
+	if (!found && data->assoc_info.req_ies)
+		wpa_sm_set_assoc_wpa_ie(wpa_s->wpa, NULL, 0);
+	if (!found_x && data->assoc_info.req_ies)
+		wpa_sm_set_assoc_rsnxe(wpa_s->wpa, NULL, 0);
 
 	rsn_override = RSN_OVERRIDE_NOT_USED;
 	ie = get_vendor_ie(data->assoc_info.req_ies,
