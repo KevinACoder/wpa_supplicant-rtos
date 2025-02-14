@@ -186,8 +186,10 @@
 #define NEED_DH_GROUPS
 #define NEED_BASE64
 #define NEED_AES_CBC
+#if CONFIG_HOSTAPD
 #define EAP_SERVER_WSC
 #define EAP_SERVER_IDENTITY
+#endif
 #endif
 
 #if CONFIG_WPA_SUPP_P2P
