@@ -31,9 +31,9 @@ enum requested_ops
     ROAM,
     FT_DS,
 #if CONFIG_WPA_SUPP_WPS
-    WPS_PBC,
-    WPS_PIN,
-    WPS_CANCEL,
+    OP_WPS_PBC,
+    OP_WPS_PIN,
+    OP_WPS_CANCEL,
 #endif
     START,
     STOP
@@ -157,6 +157,18 @@ int wpa_supp_dpp_chirp(const struct netif *dev, int is_ap, const char *cmd);
 int wpa_supp_dpp_reconfig(const struct netif *dev, const char *cmd);
 
 int wpa_supp_dpp_configurator_sign(const struct netif *dev, int is_ap, const char *cmd);
+#endif
+
+#ifdef CONFIG_WPA_SUPP_P2P
+int wpa_supp_p2p_find(const struct netif *dev, const char *cmd);
+int wpa_supp_p2p_stop_find(const struct netif *dev);
+int wpa_supp_p2p_connect(const struct netif *dev, char *cmd);
+int wpa_supp_p2p_group_add(const struct netif *dev, char *cmd);
+int wpa_supp_p2p_get_passphrase(const struct netif *dev);
+int wpa_supp_p2p_invite(const struct netif *dev, char *cmd);
+int wpa_supp_p2p_prov_disc(const struct netif *dev, char *cmd);
+int wpas_supp_p2p_cancel(const struct netif *dev);
+int wpa_supp_p2p_remove_client(const struct netif *dev, char *cmd);
 #endif
 
 #if CONFIG_HOSTAPD

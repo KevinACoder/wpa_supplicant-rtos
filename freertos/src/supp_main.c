@@ -155,7 +155,7 @@ static int wpa_supplicant_init_match(struct wpa_global *global)
 
 #include "config.h"
 static int idx = 0;
-static char ifname[NETIF_NAMESIZE];
+static char ifname[DEFAULT_BSS_MAX_COUNT][NETIF_NAMESIZE];
 static void iface_cb(struct netif *iface, void *user_data)
 {
     struct wpa_interface *ifaces = user_data;
@@ -170,20 +170,21 @@ static void iface_cb(struct netif *iface, void *user_data)
     os_memcpy((void *)own_addr, (const void *)iface->hwaddr, iface->hwaddr_len);
 #endif
 
-    memset(ifname, 0, sizeof(ifname));
+    memset(ifname[idx], 0, sizeof(ifname[idx]));
 
 #ifdef __ZEPHYR__
     dev = net_if_get_device((struct net_if *)iface);
     strncpy(ifname, dev->name, NETIF_NAMESIZE - 1);
     ifname[NETIF_NAMESIZE - 1] = '\0';
 #else
-    (void)netifapi_netif_index_to_name(iface->num + 1, ifname);
+    (void)netifapi_netif_index_to_name(iface->num + 1, ifname[idx]);
 
-    wpa_printf(MSG_INFO, "iface_cb: iface %s ifindex %d %02x:%02x:%02x:%02x:%02x:%02x", ifname,
+    wpa_printf(MSG_INFO, "iface_cb: iface %s ifindex %d %02x:%02x:%02x:%02x:%02x:%02x", ifname[idx],
                netif_get_index(iface), own_addr[0], own_addr[1], own_addr[2], own_addr[3], own_addr[4], own_addr[5]);
 #endif
 
-    ifaces[idx++].ifname = ifname;
+    ifaces[idx].ifname = ifname[idx];
+    idx++;
 }
 
 void wpa_supplicant_event_wrapper_deep_copy_free(struct wpa_supplicant_event_msg *msg)
@@ -622,6 +623,11 @@ static void supplicant_main_task(osa_task_param_t arg)
                params.wpa_debug_level);
 
     iface_count = 1;
+
+#ifdef CONFIG_P2P
+    iface_count++;
+#endif
+
 #if !CONFIG_HOSTAPD
 #if 0
     iface_count++;
@@ -688,6 +694,23 @@ static void supplicant_main_task(osa_task_param_t arg)
     hostapd_main_task(arg);
 #endif
 
+#ifdef CONFIG_P2P
+    netif = net_get_wfd_interface();
+
+    if (netif != NULL)
+    {
+        ifaces[idx].ctrl_interface = "test_wfd_ctrl";
+
+        iface_cb(netif, ifaces);
+    }
+    else
+    {
+        wpa_printf(MSG_ERROR, "Failed to initialize network interface wfd");
+        exitcode = -1;
+        goto out;
+    }
+#endif
+
     params.ctrl_interface = "test_ctrl";
     wpa_printf(MSG_INFO, "Using interface %s\n", ifaces[0].ifname);
 
@@ -719,7 +742,11 @@ static void supplicant_main_task(osa_task_param_t arg)
         wpa_s->conf->okc = 1;
         wpa_s->conf->wps_cred_processing = 2;
         wpa_s->conf->filter_ssids = 1;
-        if (i == 0)
+        if (i == 0
+#ifdef CONFIG_P2P
+            || (strstr(wpa_s->ifname, "wf"))
+#endif
+		)
         {
             wpa_s->conf->ap_scan = 1;
             wpa_s->conf->rsn_overriding = RSN_OVERRIDING_ENABLED;

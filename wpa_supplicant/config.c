@@ -4335,6 +4335,9 @@ struct wpa_config *wpa_config_alloc_empty(const char *ctrl_interface, const char
         config->driver_param = os_strdup(driver_param);
     config->gas_rand_addr_lifetime = DEFAULT_RAND_ADDR_LIFETIME;
 
+    if (os_strcmp(ctrl_interface, "test_wfd_ctrl") == 0)
+        config->device_name = os_strdup("NXP device");
+
     return config;
 }
 
