@@ -485,7 +485,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
     return 0;
 }
 
-void process_wpa_supplicant_event()
+void process_wpa_supplicant_event(void)
 {
     void *mem;
     struct wpa_supplicant_event_msg *msg = NULL;
@@ -545,7 +545,7 @@ static void notify_wpa_supplicant_event(wpa_supp_event_t event)
 #endif
 }
 
-int send_wpa_supplicant_dummy_event()
+int send_wpa_supplicant_dummy_event(void)
 {
     notify_wpa_supplicant_event(DUMMY);
 
@@ -865,7 +865,7 @@ static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module, in
 {
     struct hostapd_data *hapd = ctx;
     char *format, *module_str;
-    int maxlen;
+    int maxlen, ret = 0;
     int conf_syslog_level, conf_stdout_level;
     unsigned int conf_syslog, conf_stdout;
 
@@ -913,16 +913,40 @@ static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module, in
     }
 
     if (hapd && hapd->conf && addr)
-        os_snprintf(format, maxlen, "%s: STA " MACSTR "%s%s: %s", hapd->conf->iface, MAC2STR(addr),
+    {
+        ret = os_snprintf(format, maxlen, "%s: STA " MACSTR "%s%s: %s", hapd->conf->iface, MAC2STR(addr),
                     module_str ? " " : "", module_str ? module_str : "", txt);
+        if (ret < 0)
+        {
+            wpa_printf(MSG_ERROR, "Encoding error occurred \r\n");
+        }
+    }
     else if (hapd && hapd->conf)
-        os_snprintf(format, maxlen, "%s:%s%s %s", hapd->conf->iface, module_str ? " " : "",
+    {
+        ret = os_snprintf(format, maxlen, "%s:%s%s %s", hapd->conf->iface, module_str ? " " : "",
                     module_str ? module_str : "", txt);
+        if (ret < 0)
+        {
+            wpa_printf(MSG_ERROR, "Encoding error occurred \r\n");
+        }
+    }
     else if (addr)
-        os_snprintf(format, maxlen, "STA " MACSTR "%s%s: %s", MAC2STR(addr), module_str ? " " : "",
+    {
+        ret = os_snprintf(format, maxlen, "STA " MACSTR "%s%s: %s", MAC2STR(addr), module_str ? " " : "",
                     module_str ? module_str : "", txt);
+        if (ret < 0)
+        {
+            wpa_printf(MSG_ERROR, "Encoding error occurred \r\n");
+        }
+    }
     else
-        os_snprintf(format, maxlen, "%s%s%s", module_str ? module_str : "", module_str ? ": " : "", txt);
+    {
+        ret = os_snprintf(format, maxlen, "%s%s%s", module_str ? module_str : "", module_str ? ": " : "", txt);
+        if (ret < 0)
+        {
+            wpa_printf(MSG_ERROR, "Encoding error occurred \r\n");
+        }
+    }
 
 #if CONFIG_DEBUG_SYSLOG
     if (wpa_debug_syslog)
@@ -1234,7 +1258,7 @@ struct hostapd_iface *hostapd_get_interface(const char *ifname)
     return interfaces.iface[0];
 }
 
-struct hostapd_data *hostapd_get_hapd()
+struct hostapd_data *hostapd_get_hapd(void)
 {
     struct hostapd_data *hapd = NULL;
     if (interfaces.iface && interfaces.iface[0] && interfaces.iface[0]->bss && interfaces.iface[0]->bss[0])
