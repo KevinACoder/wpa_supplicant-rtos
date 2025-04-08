@@ -245,7 +245,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->auth.ies) {
             char *ies = os_zalloc(data->auth.ies_len);
 
-            if (!ies) {
+            if (ies == NULL) {
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc ies", __func__);
                 return -1;
             }
@@ -257,7 +257,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->rx_mgmt.frame) {
             char *frame = os_zalloc(data->rx_mgmt.frame_len);
 
-            if (!frame) {
+            if (frame == NULL) {
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc frame",
                   __func__);
                 return -1;
@@ -272,7 +272,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->tx_status.data) {
             char *frame = os_zalloc(data->tx_status.data_len);
 
-            if (!frame) {
+            if (frame == NULL) {
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc frame\n",
                   __func__);
                 return -1;
@@ -286,7 +286,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
     } else if (event == EVENT_ASSOC) {
         char *addr = os_zalloc(ETH_ALEN);
 
-        if (!addr) {
+        if (addr == NULL) {
             wpa_printf(MSG_ERROR, "%s: Failed to alloc addr\n",
                 __func__);
             return -1;
@@ -298,7 +298,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->assoc_info.req_ies) {
             char *req_ies = os_zalloc(data->assoc_info.req_ies_len);
 
-            if (!req_ies) {
+            if (req_ies == NULL) {
                 os_free(addr);
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc req_ies\n",
                   __func__);
@@ -312,7 +312,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->assoc_info.resp_ies) {
             char *resp_ies = os_zalloc(data->assoc_info.resp_ies_len);
 
-            if (!resp_ies) {
+            if (resp_ies == NULL) {
                 os_free(addr);
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc resp_ies\n",
                   __func__);
@@ -326,7 +326,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->assoc_info.resp_frame) {
             char *resp_frame = os_zalloc(data->assoc_info.resp_frame_len);
 
-            if (!resp_frame) {
+            if (resp_frame == NULL) {
                 os_free(addr);
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc resp_frame\n",
                   __func__);
@@ -340,7 +340,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
     } else if (event == EVENT_ASSOC_REJECT) {
         char *bssid = os_zalloc(ETH_ALEN);
 
-        if (!bssid) {
+        if (bssid == NULL) {
             wpa_printf(MSG_ERROR, "%s: Failed to alloc bssid\n",
                 __func__);
             return -1;
@@ -352,7 +352,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->assoc_reject.resp_ies) {
             char *resp_ies = os_zalloc(data->assoc_reject.resp_ies_len);
 
-            if (!resp_ies) {
+            if (resp_ies == NULL) {
                 os_free(bssid);
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc resp_ies\n",
                   __func__);
@@ -366,7 +366,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
     } else if (event == EVENT_DEAUTH) {
         char *sa = os_zalloc(ETH_ALEN);
 
-        if (!sa) {
+        if (sa == NULL) {
             wpa_printf(MSG_ERROR, "%s: Failed to alloc SA\n",
                 __func__);
             return -1;
@@ -377,7 +377,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->deauth_info.ie) {
             char *ie = os_zalloc(data->deauth_info.ie_len);
 
-            if (!ie) {
+            if (ie == NULL) {
                 os_free(sa);
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc ie\n",
                   __func__);
@@ -390,7 +390,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
     } else if (event == EVENT_DISASSOC) {
         char *sa = os_zalloc(ETH_ALEN);
 
-        if (!sa) {
+        if (sa == NULL) {
             wpa_printf(MSG_ERROR, "%s: Failed to alloc SA\n",
                 __func__);
             return -1;
@@ -401,7 +401,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->disassoc_info.ie) {
             char *ie = os_zalloc(data->disassoc_info.ie_len);
 
-            if (!ie) {
+            if (ie == NULL) {
                 os_free(sa);
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc ie\n",
                   __func__);
@@ -415,7 +415,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         char *sa = os_zalloc(ETH_ALEN);
         char *da = os_zalloc(ETH_ALEN);
 
-        if (!sa) {
+        if (sa == NULL) {
             if (da)
                 os_free(da);
             wpa_printf(MSG_ERROR, "%s: Failed to alloc sa\n",
@@ -423,7 +423,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
             return -1;
         }
 
-        if (!da) {
+        if (da == NULL) {
             if (sa)
                 os_free(sa);
             wpa_printf(MSG_ERROR, "%s: Failed to alloc da\n",
@@ -438,7 +438,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         char *sa = os_zalloc(ETH_ALEN);
         char *da = os_zalloc(ETH_ALEN);
 
-        if (!sa) {
+        if (sa == NULL) {
             if (da)
                 os_free(da);
             wpa_printf(MSG_ERROR, "%s: Failed to alloc sa\n",
@@ -446,7 +446,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
             return -1;
         }
 
-        if (!da) {
+        if (da == NULL) {
             if (sa)
                 os_free(sa);
             wpa_printf(MSG_ERROR, "%s: Failed to alloc da\n",
@@ -461,7 +461,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         if (data->eapol_rx.data && data->eapol_rx.src) {
             char *frame = os_zalloc(data->eapol_rx.data_len);
 
-            if (!frame) {
+            if (frame == NULL) {
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc frame",
                   __func__);
                 return -1;
@@ -469,7 +469,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
 
             char *addr = os_zalloc(ETH_ALEN);
 
-            if (!addr) {
+            if (addr == NULL) {
                 wpa_printf(MSG_ERROR, "%s: Failed to alloc addr\n",
                     __func__);
                 os_free(frame);
