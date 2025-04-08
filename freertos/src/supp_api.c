@@ -52,7 +52,7 @@
 #include "wpa_i.h"
 #endif
 
-#ifdef CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_P2P
 #include "p2p/p2p.h"
 #include "p2p_supplicant.h"
 #endif
@@ -3354,7 +3354,7 @@ int wpa_supp_get_sta_info(const struct netif *dev, unsigned char *sta_addr, unsi
     struct hostapd_data *hapd;
     struct sta_info *sta;
 
-#ifdef CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_P2P
     if (dev == net_get_wfd_interface())
     {
         struct wpa_supplicant *wpa_s;
@@ -4748,7 +4748,7 @@ out:
 }
 #endif /* CONFIG_DPP */
 
-#ifdef CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_P2P
 int wpa_supp_p2p_find(const struct netif *dev, const char *cmd)
 {
     struct wpa_supplicant *wpa_s;

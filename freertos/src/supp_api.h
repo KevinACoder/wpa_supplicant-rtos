@@ -159,7 +159,7 @@ int wpa_supp_dpp_reconfig(const struct netif *dev, const char *cmd);
 int wpa_supp_dpp_configurator_sign(const struct netif *dev, int is_ap, const char *cmd);
 #endif
 
-#ifdef CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_P2P
 int wpa_supp_p2p_find(const struct netif *dev, const char *cmd);
 int wpa_supp_p2p_stop_find(const struct netif *dev);
 int wpa_supp_p2p_connect(const struct netif *dev, char *cmd);

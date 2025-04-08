@@ -316,7 +316,7 @@ static void wpa_drv_freertos_event_mgmt_tx_status(struct freertos_drv_if_ctx *if
     const struct ieee80211_hdr *hdr;
     u16 fc;
 
-#ifdef CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_P2P
     struct wpa_supplicant *wpa_s = if_ctx->supp_if_ctx;
 #endif
 
@@ -337,7 +337,7 @@ static void wpa_drv_freertos_event_mgmt_tx_status(struct freertos_drv_if_ctx *if
     if (if_ctx->hapd)
         hostapd_event_wrapper(if_ctx->hapd, EVENT_TX_STATUS, &event);
     else
-#ifdef CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_P2P
     if (wpa_s->ap_iface)
         hostapd_event_wrapper(wpa_s->ap_iface->bss[0], EVENT_TX_STATUS, &event);
     else
@@ -1247,7 +1247,7 @@ static int wpa_drv_freertos_get_capa(void *priv, struct wpa_driver_capa *capa)
 
     capa->flags |= WPA_DRIVER_FLAGS_OFFCHANNEL_TX;
 
-#ifdef CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_P2P
     if (if_ctx->dev_ctx == net_get_wfd_interface())
         capa->flags |= WPA_DRIVER_FLAGS_P2P_CAPABLE;
 #endif
@@ -1703,7 +1703,7 @@ static void wpa_drv_freertos_event_proc_mgmt_rx(struct freertos_drv_if_ctx *if_c
     if (if_ctx->hapd)
         hostapd_event_wrapper(if_ctx->hapd, EVENT_RX_MGMT, event);
     else
-#ifdef CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_P2P
     if (wpa_s->ap_iface)
         hostapd_event_wrapper(wpa_s->ap_iface->bss[0], EVENT_RX_MGMT, event);
     else
@@ -1719,7 +1719,7 @@ static void wpa_drv_freertos_event_proc_eapol_rx(struct freertos_drv_if_ctx *if_
     if (if_ctx->hapd)
         hostapd_event_wrapper(if_ctx->hapd, EVENT_EAPOL_RX, event);
     else
-#ifdef CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_P2P
     if (wpa_s->ap_iface)
         hostapd_event_wrapper(wpa_s->ap_iface->bss[0], EVENT_EAPOL_RX, event);
     else
