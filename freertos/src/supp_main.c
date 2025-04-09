@@ -537,7 +537,7 @@ static void notify_wpa_supplicant_event(wpa_supp_event_t event)
     k_sleep(K_MSEC(10));
 #else
     (void)OSA_EventSet((osa_event_handle_t)supplicant_event_Handle, (1U << event));
-    if (!__get_IPSR())
+    if (__get_IPSR() == 0)
     {
         OSA_TaskYield();
         OSA_TimeDelay(10);
@@ -871,10 +871,10 @@ static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module, in
 
     maxlen = len + 100;
     format = os_malloc(maxlen);
-    if (!format)
+    if (format == NULL)
         return;
 
-    if (hapd && hapd->conf)
+    if ((hapd != NULL) && (hapd->conf != NULL))
     {
         conf_syslog_level = hapd->conf->logger_syslog_level;
         conf_stdout_level = hapd->conf->logger_stdout_level;
@@ -912,7 +912,7 @@ static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module, in
             break;
     }
 
-    if (hapd && hapd->conf && addr)
+    if ((hapd != NULL) && (hapd->conf != NULL) && (addr != NULL))
     {
         ret = os_snprintf(format, maxlen, "%s: STA " MACSTR "%s%s: %s", hapd->conf->iface, MAC2STR(addr),
                     module_str ? " " : "", module_str ? module_str : "", txt);
@@ -921,7 +921,7 @@ static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module, in
             wpa_printf(MSG_ERROR, "Encoding error occurred \r\n");
         }
     }
-    else if (hapd && hapd->conf)
+    else if ((hapd != NULL) && (hapd->conf != NULL))
     {
         ret = os_snprintf(format, maxlen, "%s:%s%s %s", hapd->conf->iface, module_str ? " " : "",
                     module_str ? module_str : "", txt);
@@ -986,7 +986,7 @@ static int hostapd_driver_init(struct hostapd_iface *iface)
     }
 
     /* Initialize the driver interface */
-    if (!(b[0] | b[1] | b[2] | b[3] | b[4] | b[5]))
+    if ((b[0] | b[1] | b[2] | b[3] | b[4] | b[5]) == 0)
         b = NULL;
 
     os_memset(&params, 0, sizeof(params));
@@ -1088,7 +1088,7 @@ static struct hostapd_iface *hostapd_interface_init(struct hapd_interfaces *inte
 
     wpa_printf(MSG_DEBUG, "Configuration file: %s", config_fname);
     iface = hostapd_init(interfaces, config_fname);
-    if (!iface)
+    if (iface == NULL)
         return NULL;
 
     if (if_name)
@@ -1104,7 +1104,7 @@ static struct hostapd_iface *hostapd_interface_init(struct hapd_interfaces *inte
             iface->bss[0]->conf->logger_stdout_level--;
     }
 
-    if (iface->conf->bss[0]->iface[0] == '\0' && !hostapd_drv_none(iface->bss[0]))
+    if (iface->conf->bss[0]->iface[0] == '\0' && (hostapd_drv_none(iface->bss[0]) == 0))
     {
         wpa_printf(MSG_ERROR, "Interface name not specified in %s, nor by '-i' parameter", config_fname);
         hostapd_interface_deinit_free(iface);
@@ -1158,7 +1158,7 @@ static void hostapd_global_deinit(const char *pid_file, int eloop_initialized)
 
     for (i = 0; wpa_drivers[i] && hglobal.drv_priv; i++)
     {
-        if (!hglobal.drv_priv[i])
+        if (hglobal.drv_priv[i] == NULL)
             continue;
         wpa_drivers[i]->global_deinit(hglobal.drv_priv[i]);
     }
@@ -1517,7 +1517,7 @@ static void hostapd_main_task(osa_task_param_t arg)
     for (i = 0; i < interfaces.count; i++)
     {
         interfaces.iface[i] = hostapd_interface_init(&interfaces, if_name, "hostapd.conf", debug);
-        if (!interfaces.iface[i])
+        if (interfaces.iface[i] == NULL)
         {
             wpa_printf(MSG_ERROR, "Failed to initialize interface");
             goto out;
@@ -1559,7 +1559,7 @@ static void hostapd_task_cleanup(void)
     /* Deinitialize all interfaces */
     for (i = 0; i < interfaces.count; i++)
     {
-        if (!interfaces.iface[i])
+        if (interfaces.iface[i] == NULL)
             continue;
         interfaces.iface[i]->driver_ap_teardown =
             !!(interfaces.iface[i]->drv_flags & WPA_DRIVER_FLAGS_AP_TEARDOWN_SUPPORT);
