@@ -242,7 +242,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
     data_tmp = msg->data;
     /* Handle deep copy for some event data */
     if (event == EVENT_AUTH) {
-        if (data->auth.ies) {
+        if (data->auth.ies != NULL) {
             char *ies = os_zalloc(data->auth.ies_len);
 
             if (ies == NULL) {
@@ -254,7 +254,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
             data_tmp->auth.ies = (const u8 *)ies;
         }
     } else if (event == EVENT_RX_MGMT) {
-        if (data->rx_mgmt.frame) {
+        if (data->rx_mgmt.frame != NULL) {
             char *frame = os_zalloc(data->rx_mgmt.frame_len);
 
             if (frame == NULL) {
@@ -269,7 +269,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
     } else if (event == EVENT_TX_STATUS) {
         const struct ieee80211_hdr *hdr;
 
-        if (data->tx_status.data) {
+        if (data->tx_status.data != NULL) {
             char *frame = os_zalloc(data->tx_status.data_len);
 
             if (frame == NULL) {
@@ -295,7 +295,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         os_memcpy(addr, data->assoc_info.addr, ETH_ALEN);
         data_tmp->assoc_info.addr = (const u8 *)addr;
 
-        if (data->assoc_info.req_ies) {
+        if (data->assoc_info.req_ies != NULL) {
             char *req_ies = os_zalloc(data->assoc_info.req_ies_len);
 
             if (req_ies == NULL) {
@@ -309,7 +309,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                       data->assoc_info.req_ies_len);
             data_tmp->assoc_info.req_ies = (const u8 *)req_ies;
         }
-        if (data->assoc_info.resp_ies) {
+        if (data->assoc_info.resp_ies != NULL) {
             char *resp_ies = os_zalloc(data->assoc_info.resp_ies_len);
 
             if (resp_ies == NULL) {
@@ -323,7 +323,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                       data->assoc_info.resp_ies_len);
             data_tmp->assoc_info.resp_ies = (const u8 *)resp_ies;
         }
-        if (data->assoc_info.resp_frame) {
+        if (data->assoc_info.resp_frame != NULL) {
             char *resp_frame = os_zalloc(data->assoc_info.resp_frame_len);
 
             if (resp_frame == NULL) {
@@ -349,7 +349,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         os_memcpy(bssid, data->assoc_reject.bssid, ETH_ALEN);
         data_tmp->assoc_reject.bssid = (const u8 *)bssid;
 
-        if (data->assoc_reject.resp_ies) {
+        if (data->assoc_reject.resp_ies != NULL) {
             char *resp_ies = os_zalloc(data->assoc_reject.resp_ies_len);
 
             if (resp_ies == NULL) {
@@ -374,7 +374,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
 
         os_memcpy(sa, data->deauth_info.addr, ETH_ALEN);
         data_tmp->deauth_info.addr = (const u8 *)sa;
-        if (data->deauth_info.ie) {
+        if (data->deauth_info.ie != NULL) {
             char *ie = os_zalloc(data->deauth_info.ie_len);
 
             if (ie == NULL) {
@@ -398,7 +398,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
 
         os_memcpy(sa, data->disassoc_info.addr, ETH_ALEN);
         data_tmp->disassoc_info.addr = (const u8 *)sa;
-        if (data->disassoc_info.ie) {
+        if (data->disassoc_info.ie != NULL) {
             char *ie = os_zalloc(data->disassoc_info.ie_len);
 
             if (ie == NULL) {
@@ -416,7 +416,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         char *da = os_zalloc(ETH_ALEN);
 
         if (sa == NULL) {
-            if (da)
+            if (da != NULL)
                 os_free(da);
             wpa_printf(MSG_ERROR, "%s: Failed to alloc sa\n",
                 __func__);
@@ -424,7 +424,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         }
 
         if (da == NULL) {
-            if (sa)
+            if (sa != NULL)
                 os_free(sa);
             wpa_printf(MSG_ERROR, "%s: Failed to alloc da\n",
                 __func__);
@@ -439,7 +439,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         char *da = os_zalloc(ETH_ALEN);
 
         if (sa == NULL) {
-            if (da)
+            if (da != NULL)
                 os_free(da);
             wpa_printf(MSG_ERROR, "%s: Failed to alloc sa\n",
                 __func__);
@@ -447,7 +447,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
         }
 
         if (da == NULL) {
-            if (sa)
+            if (sa != NULL)
                 os_free(sa);
             wpa_printf(MSG_ERROR, "%s: Failed to alloc da\n",
                 __func__);
@@ -516,7 +516,7 @@ void process_wpa_supplicant_event(void)
 #endif
                     wpa_supplicant_event(msg->ctx, msg->event, msg->data);
 
-                if (msg->data)
+                if (msg->data != NULL)
                 {
                     wpa_supplicant_event_wrapper_deep_copy_free(msg);
                     os_free(msg->data);
@@ -563,7 +563,7 @@ int send_wpa_supplicant_event(struct wpa_supplicant_event_msg *msg)
 #endif
     if (ret != 0)
     {
-        if (msg->data)
+        if (msg->data != NULL)
         {
             wpa_printf(MSG_ERROR, "Drop supplicant event %d for queue full", msg->event);
             wpa_supplicant_event_wrapper_deep_copy_free(msg);
@@ -752,9 +752,9 @@ out:
 #endif
     {
         msg = (struct wpa_supplicant_event_msg *)mem;
-        if (msg)
+        if (msg != NULL)
         {
-            if (msg->data)
+            if (msg->data != NULL)
             {
                 wpa_supplicant_event_wrapper_deep_copy_free(msg);
                 os_free(msg->data);
@@ -930,7 +930,7 @@ static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module, in
             wpa_printf(MSG_ERROR, "Encoding error occurred \r\n");
         }
     }
-    else if (addr)
+    else if (addr != NULL)
     {
         ret = os_snprintf(format, maxlen, "STA " MACSTR "%s%s: %s", MAC2STR(addr), module_str ? " " : "",
                     module_str ? module_str : "", txt);
@@ -1360,7 +1360,7 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
     if (hostapd_config_check(conf, 1))
         errors++;
 #ifndef WPA_IGNORE_CONFIG_ERRORS
-    if (errors)
+    if (errors != 0)
     {
         wpa_printf(MSG_ERROR,
                    "%d errors found in configuration file "
