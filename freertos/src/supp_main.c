@@ -537,7 +537,7 @@ static void notify_wpa_supplicant_event(wpa_supp_event_t event)
     k_sleep(K_MSEC(10));
 #else
     (void)OSA_EventSet((osa_event_handle_t)supplicant_event_Handle, (1U << event));
-    if (__get_IPSR() == 0)
+    if (0U == __get_IPSR())
     {
         OSA_TaskYield();
         OSA_TimeDelay(10);
@@ -708,7 +708,7 @@ static void supplicant_main_task(osa_task_param_t arg)
         if (i == 0)
         {
             wpa_s->conf->ap_scan = 1;
-            wpa_s->conf->rsn_overriding = 2;
+            wpa_s->conf->rsn_overriding = RSN_OVERRIDING_ENABLED;
         }
         else
         {
@@ -807,7 +807,7 @@ int start_wpa_supplicant(char *iface_name)
         WPA_SUPP_TASK_PRIO, 0, K_NO_WAIT);
     k_thread_name_set(supplicant_thread, "wpa_supplicant");
 #else
-    int status;
+    osa_status_t status;
 
     status = OSA_EventCreate((osa_event_handle_t)supplicant_event_Handle, 1);
     if (status != KOSA_StatusSuccess)
@@ -865,19 +865,20 @@ static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module, in
 {
     struct hostapd_data *hapd = ctx;
     char *format, *module_str;
-    int maxlen, ret = 0;
+    int ret = 0;
+    unsigned int maxlen = 0U;
     int conf_syslog_level, conf_stdout_level;
     unsigned int conf_syslog, conf_stdout;
 
-    maxlen = len + 100;
+    maxlen = len + 100U;
     format = os_malloc(maxlen);
     if (format == NULL)
         return;
 
     if ((hapd != NULL) && (hapd->conf != NULL))
     {
-        conf_syslog_level = hapd->conf->logger_syslog_level;
-        conf_stdout_level = hapd->conf->logger_stdout_level;
+        conf_syslog_level = (int)hapd->conf->logger_syslog_level;
+        conf_stdout_level = (int)hapd->conf->logger_stdout_level;
         conf_syslog       = hapd->conf->logger_syslog;
         conf_stdout       = hapd->conf->logger_stdout;
     }
@@ -986,7 +987,7 @@ static int hostapd_driver_init(struct hostapd_iface *iface)
     }
 
     /* Initialize the driver interface */
-    if ((b[0] | b[1] | b[2] | b[3] | b[4] | b[5]) == 0)
+    if (0U == (b[0] | b[1] | b[2] | b[3] | b[4] | b[5]))
         b = NULL;
 
     os_memset(&params, 0, sizeof(params));
@@ -1100,7 +1101,7 @@ static struct hostapd_iface *hostapd_interface_init(struct hapd_interfaces *inte
 
     for (k = 0; k < debug; k++)
     {
-        if (iface->bss[0]->conf->logger_stdout_level > 0)
+        if (iface->bss[0]->conf->logger_stdout_level > HOSTAPD_LEVEL_DEBUG_VERBOSE)
             iface->bss[0]->conf->logger_stdout_level--;
     }
 
@@ -1140,7 +1141,7 @@ static int hostapd_global_init(struct hapd_interfaces *interfaces, const char *e
 
     for (i = 0; wpa_drivers[i]; i++)
         hglobal.drv_count++;
-    if (hglobal.drv_count == 0)
+    if (0U == hglobal.drv_count)
     {
         wpa_printf(MSG_ERROR, "No drivers enabled");
         return -1;
@@ -1336,13 +1337,13 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
     os_memcpy(conf->country, "WW ", 3);
 #endif
     conf->hw_mode        = HOSTAPD_MODE_IEEE80211G;
-    bss->wps_state       = WPS_STATE_CONFIGURED;
+    bss->wps_state       = (int)WPS_STATE_CONFIGURED;
     bss->eap_server      = 1;
 #if CONFIG_WPA_SUPP_WPS
     bss->ap_setup_locked = 1;
 #endif
     conf->channel        = 1;
-    conf->acs            = conf->channel == 0;
+    conf->acs            = (u8)(conf->channel == 0U);
 #if CONFIG_ACS
     conf->acs_num_scans = 1;
 #endif /* CONFIG_ACS */
