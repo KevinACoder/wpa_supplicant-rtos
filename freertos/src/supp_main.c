@@ -192,7 +192,9 @@ void wpa_supplicant_event_wrapper_deep_copy_free(struct wpa_supplicant_event_msg
     union wpa_event_data *data;
 
     if (msg == NULL || msg->data == NULL)
+    {
         return;
+    }
 
     event = msg->event;
     data  = msg->data;
@@ -237,8 +239,9 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
     union wpa_event_data *data_tmp;
 
     if (msg == NULL || msg->data == NULL || data == NULL)
+    {
         return -1;
-
+    }
     data_tmp = msg->data;
     /* Handle deep copy for some event data */
     if (event == EVENT_AUTH) {
@@ -417,7 +420,9 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
 
         if (sa == NULL) {
             if (da != NULL)
+            {
                 os_free(da);
+            }
             wpa_printf(MSG_ERROR, "%s: Failed to alloc sa\n",
                 __func__);
             return -1;
@@ -425,7 +430,9 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
 
         if (da == NULL) {
             if (sa != NULL)
+            {
                 os_free(sa);
+            }
             wpa_printf(MSG_ERROR, "%s: Failed to alloc da\n",
                 __func__);
             return -1;
@@ -440,7 +447,9 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
 
         if (sa == NULL) {
             if (da != NULL)
+            {
                 os_free(da);
+            }
             wpa_printf(MSG_ERROR, "%s: Failed to alloc sa\n",
                 __func__);
             return -1;
@@ -448,7 +457,9 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
 
         if (da == NULL) {
             if (sa != NULL)
+            {
                 os_free(sa);
+            }
             wpa_printf(MSG_ERROR, "%s: Failed to alloc da\n",
                 __func__);
             return -1;
@@ -514,8 +525,9 @@ void process_wpa_supplicant_event(void)
                 }
                 else
 #endif
+                {
                     wpa_supplicant_event(msg->ctx, msg->event, msg->data);
-
+                }
                 if (msg->data != NULL)
                 {
                     wpa_supplicant_event_wrapper_deep_copy_free(msg);
@@ -690,7 +702,9 @@ static void supplicant_main_task(osa_task_param_t arg)
                                      params.match_iface_count ||
 #endif /* CONFIG_MATCH_IFACE */
                                      params.dbus_ctrl_interface))
+            {
                 break;
+            }
             wpa_printf(MSG_INFO, "Failed to initialize interface %d\n", i);
             exitcode = -1;
             break;
@@ -873,8 +887,9 @@ static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module, in
     maxlen = len + 100U;
     format = os_malloc(maxlen);
     if (format == NULL)
+    {
         return;
-
+    }
     if ((hapd != NULL) && (hapd->conf != NULL))
     {
         conf_syslog_level = (int)hapd->conf->logger_syslog_level;
@@ -988,14 +1003,16 @@ static int hostapd_driver_init(struct hostapd_iface *iface)
 
     /* Initialize the driver interface */
     if (0U == (b[0] | b[1] | b[2] | b[3] | b[4] | b[5]))
+    {
         b = NULL;
-
+    }
     os_memset(&params, 0, sizeof(params));
     for (i = 0; wpa_drivers[i]; i++)
     {
         if (wpa_drivers[i] != hapd->driver)
+        {
             continue;
-
+        }
         if (hglobal.drv_priv[i] == NULL && wpa_drivers[i]->global_init)
         {
             hglobal.drv_priv[i] = wpa_drivers[i]->global_init(iface->interfaces);
@@ -1020,12 +1037,16 @@ static int hostapd_driver_init(struct hostapd_iface *iface)
     params.num_bridge = hapd->iface->num_bss;
     params.bridge     = os_calloc(hapd->iface->num_bss, sizeof(char *));
     if (params.bridge == NULL)
+    {
         return -1;
+    }
     for (i = 0; i < hapd->iface->num_bss; i++)
     {
         struct hostapd_data *bss = hapd->iface->bss[i];
         if (bss->conf->bridge[0])
+        {
             params.bridge[i] = bss->conf->bridge;
+        }
     }
 
     params.own_addr = hapd->own_addr;
@@ -1064,7 +1085,9 @@ static int hostapd_driver_init(struct hostapd_iface *iface)
         if (triggs && hapd->driver->set_wowlan)
         {
             if (hapd->driver->set_wowlan(hapd->drv_priv, triggs))
+            {
                 wpa_printf(MSG_ERROR, "set_wowlan failed");
+            }
         }
         os_free(triggs);
     }
@@ -1090,8 +1113,9 @@ static struct hostapd_iface *hostapd_interface_init(struct hapd_interfaces *inte
     wpa_printf(MSG_DEBUG, "Configuration file: %s", config_fname);
     iface = hostapd_init(interfaces, config_fname);
     if (iface == NULL)
+    {
         return NULL;
-
+    }
     if (if_name)
     {
         os_strlcpy(iface->conf->bss[0]->iface, if_name, sizeof(iface->conf->bss[0]->iface));
@@ -1102,7 +1126,9 @@ static struct hostapd_iface *hostapd_interface_init(struct hapd_interfaces *inte
     for (k = 0; k < debug; k++)
     {
         if (iface->bss[0]->conf->logger_stdout_level > HOSTAPD_LEVEL_DEBUG_VERBOSE)
+        {
             iface->bss[0]->conf->logger_stdout_level--;
+        }
     }
 
     if (iface->conf->bss[0]->iface[0] == '\0' && (hostapd_drv_none(iface->bss[0]) == 0))
@@ -1140,7 +1166,9 @@ static int hostapd_global_init(struct hapd_interfaces *interfaces, const char *e
     random_init(entropy_file);
 
     for (i = 0; wpa_drivers[i]; i++)
+    {
         hglobal.drv_count++;
+    }
     if (0U == hglobal.drv_count)
     {
         wpa_printf(MSG_ERROR, "No drivers enabled");
@@ -1148,8 +1176,9 @@ static int hostapd_global_init(struct hapd_interfaces *interfaces, const char *e
     }
     hglobal.drv_priv = os_calloc(hglobal.drv_count, sizeof(void *));
     if (hglobal.drv_priv == NULL)
+    {
         return -1;
-
+    }
     return 0;
 }
 
@@ -1160,7 +1189,9 @@ static void hostapd_global_deinit(const char *pid_file, int eloop_initialized)
     for (i = 0; wpa_drivers[i] && hglobal.drv_priv; i++)
     {
         if (hglobal.drv_priv[i] == NULL)
+        {
             continue;
+        }
         wpa_drivers[i]->global_deinit(hglobal.drv_priv[i]);
     }
     os_free(hglobal.drv_priv);
@@ -1223,7 +1254,9 @@ static const char *hostapd_msg_ifname_cb(void *ctx)
 {
     struct wpa_supplicant *wpa_s = ctx;
     if (wpa_s == NULL)
+    {
         return NULL;
+    }
     return wpa_s->ifname;
 }
 
@@ -1357,9 +1390,13 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
     bss->okc = 1;
 
     for (i = 0; i < conf->num_bss; i++)
+    {
         hostapd_set_security_params(conf->bss[i], 1);
+    }
     if (hostapd_config_check(conf, 1))
+    {
         errors++;
+    }
 #ifndef WPA_IGNORE_CONFIG_ERRORS
     if (errors != 0)
     {
@@ -1416,7 +1453,9 @@ static int hostapd_disable_iface_cb(struct hostapd_iface *hapd_iface)
 
 #ifdef NEED_AP_MLME
     for (j = 0; j < hapd_iface->num_bss; j++)
+    {
         hostapd_cleanup_cs_params(hapd_iface->bss[j]);
+    }
 #endif /* NEED_AP_MLME */
 
     /* Same as hostapd_interface_deinit() without deinitializing control
@@ -1524,7 +1563,9 @@ static void hostapd_main_task(osa_task_param_t arg)
             goto out;
         }
         if (start_ifaces_in_sync)
+        {
             interfaces.iface[i]->need_to_start_in_sync = 1;
+        }
     }
 
     /*
@@ -1539,8 +1580,9 @@ static void hostapd_main_task(osa_task_param_t arg)
     for (i = 0; i < interfaces.count; i++)
     {
         if (hostapd_driver_init(interfaces.iface[i]))
+        {
             goto out;
-
+        }
         interfaces.iface[i]->enable_iface_cb  = hostapd_enable_iface_cb;
         interfaces.iface[i]->disable_iface_cb = hostapd_disable_iface_cb;
     }
@@ -1561,7 +1603,9 @@ static void hostapd_task_cleanup(void)
     for (i = 0; i < interfaces.count; i++)
     {
         if (interfaces.iface[i] == NULL)
+        {
             continue;
+        }
         interfaces.iface[i]->driver_ap_teardown =
             !!(interfaces.iface[i]->drv_flags & WPA_DRIVER_FLAGS_AP_TEARDOWN_SUPPORT);
         hostapd_interface_deinit_free(interfaces.iface[i]);
@@ -1576,7 +1620,9 @@ static void hostapd_task_cleanup(void)
 #endif /* CONFIG_DPP */
 
     if (interfaces.eloop_initialized)
+    {
         eloop_cancel_timeout(hostapd_periodic, &interfaces, NULL);
+    }
     hostapd_global_deinit(NULL, interfaces.eloop_initialized);
 
     return;
