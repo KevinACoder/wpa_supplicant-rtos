@@ -755,6 +755,15 @@ static void supplicant_main_task(osa_task_param_t arg)
         {
             wpa_s->conf->ap_scan = 2;
         }
+#ifdef CONFIG_P2P
+        if (strstr(wpa_s->ifname, "wf") != NULL)
+        {
+            wpa_s->conf->device_name = os_strdup("NXP device");
+            wpa_s->conf->config_methods = os_strdup("keypad push_button virtual_display");
+            wpa_s->conf->changed_parameters |= (CFG_CHANGED_DEVICE_NAME | CFG_CHANGED_CONFIG_METHODS);
+            wpa_supplicant_update_config(wpa_s);
+        }
+#endif
     }
  
 #if CONFIG_MATCH_IFACE
