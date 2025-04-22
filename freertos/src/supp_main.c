@@ -167,10 +167,10 @@ static void iface_cb(struct netif *iface, void *user_data)
     link_addr = net_if_get_link_addr((struct net_if *)iface);
     os_memcpy(own_addr, link_addr->addr, link_addr->len);
 #else
-    os_memcpy((void *)own_addr, (const void *)iface->hwaddr, iface->hwaddr_len);
+    (void)os_memcpy((void *)own_addr, (const void *)iface->hwaddr, iface->hwaddr_len);
 #endif
 
-    memset(ifname[idx], 0, sizeof(ifname[idx]));
+    (void)memset(ifname[idx], 0, sizeof(ifname[idx]));
 
 #ifdef __ZEPHYR__
     dev = net_if_get_device((struct net_if *)iface);
@@ -254,7 +254,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)ies, (const void *)data->auth.ies, data->auth.ies_len);
+            (void)os_memcpy((void *)ies, (const void *)data->auth.ies, data->auth.ies_len);
             data_tmp->auth.ies = (const u8 *)ies;
         }
     } else if (event == EVENT_RX_MGMT) {
@@ -267,7 +267,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)frame, (const void *)data->rx_mgmt.frame, data->rx_mgmt.frame_len);
+            (void)os_memcpy((void *)frame, (const void *)data->rx_mgmt.frame, data->rx_mgmt.frame_len);
             data_tmp->rx_mgmt.frame = (const u8 *)frame;
         }
     } else if (event == EVENT_TX_STATUS) {
@@ -282,7 +282,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)frame, (const void *)data->tx_status.data, data->tx_status.data_len);
+            (void)os_memcpy((void *)frame, (const void *)data->tx_status.data, data->tx_status.data_len);
             data_tmp->tx_status.data = (const u8 *)frame;
             hdr = (const struct ieee80211_hdr *) frame;
             data_tmp->tx_status.dst = hdr->addr1;
@@ -296,7 +296,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
             return -1;
         }
 
-        os_memcpy((void *)addr, (const void *)data->assoc_info.addr, ETH_ALEN);
+        (void)os_memcpy((void *)addr, (const void *)data->assoc_info.addr, ETH_ALEN);
         data_tmp->assoc_info.addr = (const u8 *)addr;
 
         if (data->assoc_info.req_ies != NULL) {
@@ -309,7 +309,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)req_ies, (const void *)data->assoc_info.req_ies,
+            (void)os_memcpy((void *)req_ies, (const void *)data->assoc_info.req_ies,
                       data->assoc_info.req_ies_len);
             data_tmp->assoc_info.req_ies = (const u8 *)req_ies;
         }
@@ -323,7 +323,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)resp_ies, (const void *)data->assoc_info.resp_ies,
+            (void)os_memcpy((void *)resp_ies, (const void *)data->assoc_info.resp_ies,
                       data->assoc_info.resp_ies_len);
             data_tmp->assoc_info.resp_ies = (const u8 *)resp_ies;
         }
@@ -337,7 +337,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)resp_frame, (const void *)data->assoc_info.resp_frame,
+            (void)os_memcpy((void *)resp_frame, (const void *)data->assoc_info.resp_frame,
                       data->assoc_info.resp_frame_len);
             data_tmp->assoc_info.resp_frame = (const u8 *)resp_frame;
         }
@@ -350,7 +350,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
             return -1;
         }
 
-        os_memcpy((void *)bssid, (const void *)data->assoc_reject.bssid, ETH_ALEN);
+        (void)os_memcpy((void *)bssid, (const void *)data->assoc_reject.bssid, ETH_ALEN);
         data_tmp->assoc_reject.bssid = (const u8 *)bssid;
 
         if (data->assoc_reject.resp_ies != NULL) {
@@ -363,7 +363,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)resp_ies, (const void *)data->assoc_reject.resp_ies,
+            (void)os_memcpy((void *)resp_ies, (const void *)data->assoc_reject.resp_ies,
                       data->assoc_reject.resp_ies_len);
             data_tmp->assoc_reject.resp_ies = (const u8 *)resp_ies;
         }
@@ -376,7 +376,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
             return -1;
         }
 
-        os_memcpy((void *)sa, (const void *)data->deauth_info.addr, ETH_ALEN);
+        (void)os_memcpy((void *)sa, (const void *)data->deauth_info.addr, ETH_ALEN);
         data_tmp->deauth_info.addr = (const u8 *)sa;
         if (data->deauth_info.ie != NULL) {
             char *ie = os_zalloc(data->deauth_info.ie_len);
@@ -388,7 +388,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)ie, (const void *)data->deauth_info.ie, data->deauth_info.ie_len);
+            (void)os_memcpy((void *)ie, (const void *)data->deauth_info.ie, data->deauth_info.ie_len);
             data_tmp->deauth_info.ie = (const u8 *)ie;
         }
     } else if (event == EVENT_DISASSOC) {
@@ -400,7 +400,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
             return -1;
         }
 
-        os_memcpy((void *)sa, (const void *)data->disassoc_info.addr, ETH_ALEN);
+        (void)os_memcpy((void *)sa, (const void *)data->disassoc_info.addr, ETH_ALEN);
         data_tmp->disassoc_info.addr = (const u8 *)sa;
         if (data->disassoc_info.ie != NULL) {
             char *ie = os_zalloc(data->disassoc_info.ie_len);
@@ -412,7 +412,7 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)ie, (const void *)data->disassoc_info.ie, data->disassoc_info.ie_len);
+            (void)os_memcpy((void *)ie, (const void *)data->disassoc_info.ie, data->disassoc_info.ie_len);
             data_tmp->disassoc_info.ie = (const u8 *)ie;
         }
     } else if (event == EVENT_UNPROT_DEAUTH) {
@@ -438,9 +438,9 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 __func__);
             return -1;
         }
-        os_memcpy((void *)sa, (const void *)data->unprot_deauth.sa, ETH_ALEN);
+        (void)os_memcpy((void *)sa, (const void *)data->unprot_deauth.sa, ETH_ALEN);
         data_tmp->unprot_deauth.sa = (const u8 *)sa;
-        os_memcpy((void *)da, (const void *)data->unprot_deauth.da, ETH_ALEN);
+        (void)os_memcpy((void *)da, (const void *)data->unprot_deauth.da, ETH_ALEN);
         data_tmp->unprot_deauth.da = (const u8 *)da;
     }  else if (event == EVENT_UNPROT_DISASSOC) {
         char *sa = os_zalloc(ETH_ALEN);
@@ -465,9 +465,9 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 __func__);
             return -1;
         }
-        os_memcpy((void *)sa, (const void *)data->unprot_disassoc.sa, ETH_ALEN);
+        (void)os_memcpy((void *)sa, (const void *)data->unprot_disassoc.sa, ETH_ALEN);
         data_tmp->unprot_disassoc.sa = (const u8 *)sa;
-        os_memcpy((void *)da, (const void *)data->unprot_disassoc.da, ETH_ALEN);
+        (void)os_memcpy((void *)da, (const void *)data->unprot_disassoc.da, ETH_ALEN);
         data_tmp->unprot_disassoc.da = (const u8 *)da;
     } else if (event == EVENT_EAPOL_RX) {
         if (data->eapol_rx.data && data->eapol_rx.src) {
@@ -488,9 +488,9 @@ int wpa_supplicant_event_wrapper_deep_copy(struct wpa_supplicant_event_msg *msg,
                 return -1;
             }
 
-            os_memcpy((void *)frame, (const void *)data->eapol_rx.data, data->eapol_rx.data_len);
+            (void)os_memcpy((void *)frame, (const void *)data->eapol_rx.data, data->eapol_rx.data_len);
             data_tmp->eapol_rx.data = (const u8 *)frame;
-            os_memcpy((void *)addr, (const void *)data->eapol_rx.src, ETH_ALEN);
+            (void)os_memcpy((void *)addr, (const void *)data->eapol_rx.src, ETH_ALEN);
             data_tmp->eapol_rx.src = (const u8 *)addr;
         }
     }
@@ -612,7 +612,7 @@ static void supplicant_main_task(osa_task_param_t arg)
     }
 #endif
 
-    os_memset(&params, 0, sizeof(params));
+    (void)os_memset(&params, 0, sizeof(params));
 #if CONFIG_WPA_SUPP_DPP || CONFIG_WPA_SUPP_P2P
     params.wpa_debug_level = MSG_INFO;
 #else
@@ -1403,7 +1403,7 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
 #if defined(RW610) || defined(IW610)
     os_memcpy(conf->country, "US ", 3);
 #else	
-    os_memcpy(conf->country, "WW ", 3);
+    (void)os_memcpy(conf->country, "WW ", 3);
 #endif
     conf->hw_mode        = HOSTAPD_MODE_IEEE80211G;
     bss->wps_state       = (int)WPS_STATE_CONFIGURED;
@@ -1529,7 +1529,7 @@ static void hostapd_main_task(osa_task_param_t arg)
     struct dpp_global_config dpp_conf;
 #endif /* CONFIG_DPP */
 
-    os_memset(&interfaces, 0, sizeof(interfaces));
+    (void)os_memset(&interfaces, 0, sizeof(interfaces));
     interfaces.reload_config      = hostapd_reload_config;
     interfaces.config_read_cb     = hostapd_config_read2;
     interfaces.for_each_interface = hostapd_for_each_interface;
