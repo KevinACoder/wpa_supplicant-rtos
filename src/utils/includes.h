@@ -202,8 +202,12 @@
 #define CONFIG_DPP
 #define CONFIG_DPP2
 #define CONFIG_DPP3
+#ifndef CONFIG_GAS
 #define CONFIG_GAS
+#endif
+#ifndef CONFIG_OFFCHANNEL
 #define CONFIG_OFFCHANNEL
+#endif
 #define CONFIG_GAS_SERVER
 #if CONFIG_HOSTAPD
 #define CONFIG_INTERWORKING

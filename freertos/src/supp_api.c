@@ -5511,6 +5511,39 @@ static inline enum wlan_security_type wpas_key_mgmt_to_wpa(int key_mgmt)
     }
 }
 
+#if CONFIG_WPA_SUPP_P2P
+int wpa_supp_p2p_update_security_info(struct wlan_network *network)
+{
+     int ret = 0;
+     struct wpa_supplicant *wpa_s = NULL;
+     struct wpa_ssid *p2p_ssid = NULL;
+     struct netif *netif = net_get_wfd_interface();
+     OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+     wpa_s = get_wpa_s_handle(netif);
+     if (!wpa_s)
+     {
+         ret = -1;
+         goto out;
+     }
+
+     if (network == NULL)
+     {
+         ret = -1;
+         goto out;
+     }
+     p2p_ssid = wpa_s->current_ssid;
+     network->security.type = wpas_key_mgmt_to_wpa(p2p_ssid->key_mgmt);
+     network->security.key_mgmt = p2p_ssid->key_mgmt;
+     network->security.pairwise_cipher = p2p_ssid->pairwise_cipher;
+     network->security.group_cipher = p2p_ssid->group_cipher;
+     network->security.psk_len = strlen(p2p_ssid->passphrase);
+
+out:
+     OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+     return ret;
+}
+#endif
+
 int wpa_supp_status(const struct netif *dev)
 {
     int status = 0;

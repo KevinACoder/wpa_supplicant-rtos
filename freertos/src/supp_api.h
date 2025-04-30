@@ -169,6 +169,7 @@ int wpa_supp_p2p_invite(const struct netif *dev, char *cmd);
 int wpa_supp_p2p_prov_disc(const struct netif *dev, char *cmd);
 int wpas_supp_p2p_cancel(const struct netif *dev);
 int wpa_supp_p2p_remove_client(const struct netif *dev, char *cmd);
+int wpa_supp_p2p_update_security_info(struct wlan_network *network);
 #endif
 
 #if CONFIG_HOSTAPD
