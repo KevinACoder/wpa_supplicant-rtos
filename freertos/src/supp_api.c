@@ -5487,6 +5487,271 @@ int wpa_supp_p2p_remove_client(const struct netif *dev, char *cmd)
 
     return 0;
 }
+
+static int wpa_supp_p2p_service_add_bonjour(struct wpa_supplicant *wpa_s, char *cmd)
+{
+    char *pos;
+    size_t len;
+    struct wpabuf *query = NULL, *resp = NULL;
+
+    pos = os_strchr(cmd, ' ');
+    if (pos == NULL)
+        return -1;
+    *pos++ = '\0';
+
+    len = os_strlen(cmd);
+    if (len & 1)
+        return -1;
+    len /= 2;
+    query = wpabuf_alloc(len);
+    if (query == NULL)
+        return -1;
+    if (hexstr2bin(cmd, wpabuf_put(query, len), len) < 0)
+    {
+        goto out;
+    }
+
+    len = os_strlen(pos);
+    if (len & 1)
+    {
+        goto out;
+    }
+    len /= 2;
+    resp = wpabuf_alloc(len);
+    if (resp == NULL)
+    {
+        goto out;
+    }
+    if (hexstr2bin(pos, wpabuf_put(resp, len), len) < 0)
+    {
+        goto out;
+    }
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+    if (wpas_p2p_service_add_bonjour(wpa_s, query, resp) < 0)
+    {
+        OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+        goto out;
+    }
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+    return 0;
+out:
+    if (query)
+       wpabuf_free(query);
+    if (resp)
+       wpabuf_free(resp);
+    return -1;
+}
+
+int wpa_supp_p2p_service_add(const struct netif *dev, char *cmd)
+{
+	struct wpa_supplicant *wpa_s;
+    char *pos;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_SERVVICE_ADD since no wpa_s");
+        return -1;
+    }
+
+    pos = os_strchr(cmd, ' ');
+    if (pos == NULL)
+        return -1;
+    *pos++ = '\0';
+
+    if (os_strcmp(cmd, "bonjour") == 0)
+        return wpa_supp_p2p_service_add_bonjour(wpa_s, pos);
+    wpa_printf(MSG_DEBUG, "Unknown service '%s'", cmd);
+    return -1;
+}
+
+int wpa_supp_p2p_serv_disc_req(const struct netif *dev, char *cmd)
+{
+	struct wpa_supplicant *wpa_s;
+    u64 ref;
+    int res;
+    u8 dst_buf[ETH_ALEN], *dst;
+    struct wpabuf *tlvs;
+    char *pos;
+    size_t len;
+
+    char buf[256];
+    const int buflen = 256;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_SERV_DISC_REQ since no wpa_s");
+        return -1;
+    }
+
+    if (hwaddr_aton(cmd, dst_buf))
+        return -1;
+    dst = dst_buf;
+    if (dst[0] == 0 && dst[1] == 0 && dst[2] == 0 && dst[3] == 0 && dst[4] == 0 && dst[5] == 0)
+        dst = NULL;
+    pos = cmd + 17;
+    if (*pos != ' ')
+        return -1;
+    pos++;
+
+    if (os_strncmp(pos, "upnp ", 5) == 0)
+    {
+        u8 version;
+        pos += 5;
+        if (hexstr2bin(pos, &version, 1) < 0)
+            return -1;
+        pos += 2;
+        if (*pos != ' ')
+            return -1;
+        pos++;
+        OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+        ref = wpas_p2p_sd_request_upnp(wpa_s, dst, version, pos);
+        OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+    }
+    else if (os_strncmp(pos, "asp ", 4) == 0)
+    {
+        char *svc_str;
+        char *svc_info = NULL;
+        u32 id;
+
+        pos += 4;
+        if (sscanf(pos, "%x", &id) != 1 || id > 0xff)
+            return -1;
+
+        pos = os_strchr(pos, ' ');
+        if (pos == NULL || pos[1] == '\0' || pos[1] == ' ')
+            return -1;
+
+        svc_str = pos + 1;
+
+        pos = os_strchr(svc_str, ' ');
+
+        if (pos)
+            *pos++ = '\0';
+
+        /* All remaining data is the svc_info string */
+        if (pos && pos[0] && pos[0] != ' ')
+        {
+            len = os_strlen(pos);
+
+            /* Unescape in place */
+            len = utf8_unescape(pos, len, pos, len);
+            if (len > 0xff)
+                return -1;
+
+            svc_info = pos;
+        }
+        OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+        ref = wpas_p2p_sd_request_asp(wpa_s, dst, (u8)id, svc_str, svc_info);
+        OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+    }
+    else
+    {
+        len = os_strlen(pos);
+        if (len & 1)
+            return -1;
+        len /= 2;
+        tlvs = wpabuf_alloc(len);
+        if (tlvs == NULL)
+            return -1;
+        if (hexstr2bin(pos, wpabuf_put(tlvs, len), len) < 0)
+        {
+            wpabuf_free(tlvs);
+            return -1;
+        }
+
+        OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+        ref = wpas_p2p_sd_request(wpa_s, dst, tlvs);
+        OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+        wpabuf_free(tlvs);
+    }
+    if (ref == 0)
+        return -1;
+    res = os_snprintf(buf, buflen, "%llx", (long long unsigned)ref);
+    if (os_snprintf_error(buflen, res))
+        return -1;
+    return res;
+}
+
+int wpa_supp_p2p_serv_disc_resp(const struct netif *dev, char *cmd)
+{
+	struct wpa_supplicant *wpa_s;
+    int freq;
+    u8 dst[ETH_ALEN];
+    u8 dialog_token;
+    struct wpabuf *resp_tlvs;
+    char *pos, *pos2;
+    size_t len;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_SERV_DISC_RESP since no wpa_s");
+        return -1;
+    }
+
+    pos = os_strchr(cmd, ' ');
+    if (pos == NULL)
+        return -1;
+    *pos++ = '\0';
+    freq   = atoi(cmd);
+    if (freq == 0)
+        return -1;
+
+    if (hwaddr_aton(pos, dst))
+        return -1;
+    pos += 17;
+    if (*pos != ' ')
+        return -1;
+    pos++;
+
+    pos2 = os_strchr(pos, ' ');
+    if (pos2 == NULL)
+        return -1;
+    *pos2++      = '\0';
+    dialog_token = atoi(pos);
+
+    len = os_strlen(pos2);
+    if (len & 1)
+        return -1;
+    len /= 2;
+    resp_tlvs = wpabuf_alloc(len);
+    if (resp_tlvs == NULL)
+        return -1;
+    if (hexstr2bin(pos2, wpabuf_put(resp_tlvs, len), len) < 0)
+    {
+        wpabuf_free(resp_tlvs);
+        return -1;
+    }
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+    wpas_p2p_sd_response(wpa_s, freq, dst, dialog_token, resp_tlvs);
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+    wpabuf_free(resp_tlvs);
+    return 0;
+}
+
+int wpa_supp_p2p_group_remove(const struct netif *dev, char *cmd)
+{
+	struct wpa_supplicant *wpa_s;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_GROUP_REMOVE since no wpa_s");
+        return -1;
+    }
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+    wpas_p2p_group_remove(wpa_s, cmd);
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+    return 0;
+}
 #endif
 
 static inline enum wlan_security_type wpas_key_mgmt_to_wpa(int key_mgmt)
