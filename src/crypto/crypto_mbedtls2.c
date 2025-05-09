@@ -3609,6 +3609,7 @@ struct wpabuf *crypto_ec_key_get_ecprivate_key(struct crypto_ec_key *key, bool i
         unsigned char *p   = priv + sizeof(priv) - privlen;
         unsigned char *end = priv + sizeof(priv);
         size_t len;
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         /* ECPrivateKey SEQUENCE */
         mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
         /* version INTEGER */
@@ -3625,8 +3626,16 @@ struct wpabuf *crypto_ec_key_get_ecprivate_key(struct crypto_ec_key *key, bool i
         /* write new SEQUENCE header (we know that it fits in priv[]) */
         len = (size_t)(p - v);
         p   = v;
-        len += mbedtls_asn1_write_len(&p, priv, len);
-        len += mbedtls_asn1_write_tag(&p, priv, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+        if ((ret = mbedtls_asn1_write_len(&p, priv, len)) < 0)
+        {
+            return NULL;
+        }
+        len += ret;
+        if ((ret = mbedtls_asn1_write_tag(&p, priv, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) < 0)
+        {
+            return NULL;
+        }
+        len += ret;
         wbuf = wpabuf_alloc_copy(p, len);
     }
 
