@@ -1316,6 +1316,7 @@ static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network 
 #if CONFIG_EAP_AKA_PRIME
         case WLAN_SECURITY_EAP_AKA_PRIME:
 #endif
+#if CONFIG_EAP_TLS
             if (network->security.type == WLAN_SECURITY_EAP_TLS_SHA256)
             {
                 bss->wpa_key_mgmt = WPA_KEY_MGMT_IEEE8021X_SHA256;
@@ -1341,6 +1342,7 @@ static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network 
             }
 #endif
             else
+#endif
             {
                 if (network->security.wpa3_sb_192)
                 {
@@ -1373,9 +1375,9 @@ static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network 
                     (network->security.type == WLAN_SECURITY_EAP_FAST_MSCHAPV2) ||
 #endif
 #if CONFIG_EAP_GTC
-                    (network->security.type == WLAN_SECURITY_EAP_FAST_GTC)
+                    (network->security.type == WLAN_SECURITY_EAP_FAST_GTC) ||
 #endif
-                    || false)
+                    false)
             {
                 size_t idlen = os_strlen(network->security.pac_opaque_encr_key);
                 if (idlen != 32)
@@ -1487,7 +1489,7 @@ static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network 
 #if CONFIG_EAP_MSCHAPV2
                 (network->security.type == WLAN_SECURITY_EAP_PEAP_MSCHAPV2) ||
 #endif
-#if CONFIG_EAP_TTLS
+#if CONFIG_EAP_TLS
                 (network->security.type == WLAN_SECURITY_EAP_PEAP_TLS) ||
 #endif
 #if CONFIG_EAP_GTC
