@@ -2827,8 +2827,8 @@ static struct hostapd_hw_modes *wpa_drv_freertos_get_hw_feature_data(void *if_pr
         if (modes[2].channels == NULL || modes[2].rates == NULL)
             goto fail;
 
-        start = 5180;
-        end   = 5885;
+        start = 5170;
+        end   = 5895;
 
         k = 0;
         // 5G band1 Channel: 36, 40, 44, 48
