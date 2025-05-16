@@ -8,4 +8,4 @@ Location: https://github.com/NXP/wifi_nxp
 Origin: NXP (BSD-3-Clause)
         wpa supplicant (BSD 3-Clause) - https://w1.fi/wpa_supplicant/
         hostapd (BSD 3-Clause) - https://w1.fi/hostapd/
-        mbedtls (Apache License 2.0) - https://github.com/ARMmbed/mbedtls/releases/
+        mbedtls (Apache License 2.0) - https://github.com/Mbed-TLS/mbedtls/releases
