@@ -2842,7 +2842,7 @@ int wpa_supp_pmksa_list(const struct netif *dev, char *buf, size_t buflen)
 #if CONFIG_AP
     reply_len += wpas_ap_pmksa_cache_list(wpa_s, &buf[reply_len], buflen - reply_len);
 #endif /* CONFIG_AP */
-    
+
     if (reply_len == 0)
     {
         ret = -1;
@@ -4878,6 +4878,34 @@ out:
     return ret;
 }
 
+int wpa_supp_p2p_listen(const struct netif *dev, const char *cmd)
+{
+    unsigned int timeout = atoi(cmd);
+    struct wpa_supplicant *wpa_s;
+    int ret = 0;
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        ret = -1;
+        goto out;
+    }
+
+    if (wpa_s->wpa_state == WPA_INTERFACE_DISABLED)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_LISTEN since interface is disabled");
+        ret = -1;
+        goto out;
+    }
+    ret = wpas_p2p_listen(wpa_s, timeout);
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+    return ret;
+}
+
 static int parse_freq(int chwidth, int freq2)
 {
     if (freq2 < 0)
@@ -5753,6 +5781,148 @@ int wpa_supp_p2p_group_remove(const struct netif *dev, char *cmd)
     OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
 
     return 0;
+}
+
+static int wpas_find_p2p_dev_addr_bss(struct wpa_global *global, const u8 *p2p_dev_addr)
+{
+    struct wpa_supplicant *wpa_s;
+
+    for (wpa_s = global->ifaces; wpa_s; wpa_s = wpa_s->next)
+    {
+        if (wpa_bss_get_p2p_dev_addr(wpa_s, p2p_dev_addr))
+            return 1;
+    }
+
+    return 0;
+}
+
+int wpa_supp_p2p_peer(const struct netif *dev, char *cmd, char *buf, size_t buflen)
+{
+    u8 addr[ETH_ALEN], *addr_ptr, group_capab;
+    int next, res;
+    const struct p2p_peer_info *info;
+    char *pos, *end;
+    char devtype[WPS_DEV_TYPE_BUFSIZE];
+    struct wpa_ssid *ssid;
+    size_t i;
+
+	struct wpa_supplicant *wpa_s;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_GROUP_REMOVE since no wpa_s");
+        return -1;
+    }
+
+    if (!wpa_s->global->p2p)
+        return -1;
+
+    if (os_strcmp(cmd, "FIRST") == 0)
+    {
+        addr_ptr = NULL;
+        next     = 0;
+    }
+    else if (os_strncmp(cmd, "NEXT-", 5) == 0)
+    {
+        if (hwaddr_aton(cmd + 5, addr) < 0)
+            return -1;
+        addr_ptr = addr;
+        next     = 1;
+    }
+    else
+    {
+        if (hwaddr_aton(cmd, addr) < 0)
+            return -1;
+        addr_ptr = addr;
+        next     = 0;
+    }
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    info = p2p_get_peer_info(wpa_s->global->p2p, addr_ptr, next);
+    if (info == NULL)
+    {
+        OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+        return -1;
+    }
+    group_capab = info->group_capab;
+
+    if (group_capab && !wpas_find_p2p_dev_addr_bss(wpa_s->global, info->p2p_device_addr))
+    {
+        wpa_printf(MSG_DEBUG,
+                   "P2P: Could not find any BSS with p2p_dev_addr " MACSTR
+                   ", hence override group_capab from 0x%x to 0",
+                   MAC2STR(info->p2p_device_addr), group_capab);
+        group_capab = 0;
+    }
+
+    pos = buf;
+    end = buf + buflen;
+
+    res =
+        os_snprintf(pos, end - pos,
+                    MACSTR
+                    "\r\n"
+                    "pri_dev_type=%s\r\n"
+                    "device_name=%s\r\n"
+                    "manufacturer=%s\r\n"
+                    "model_name=%s\r\n"
+                    "model_number=%s\r\n"
+                    "serial_number=%s\r\n"
+                    "config_methods=0x%x\r\n"
+                    "dev_capab=0x%x\r\n"
+                    "group_capab=0x%x\r\n"
+                    "level=%d\r\n",
+                    MAC2STR(info->p2p_device_addr), wps_dev_type_bin2str(info->pri_dev_type, devtype, sizeof(devtype)),
+                    info->device_name, info->manufacturer, info->model_name, info->model_number, info->serial_number,
+                    info->config_methods, info->dev_capab, group_capab, info->level);
+    if (os_snprintf_error(end - pos, res))
+        goto out;
+    pos += res;
+
+    for (i = 0; i < info->wps_sec_dev_type_list_len / WPS_DEV_TYPE_LEN; i++)
+    {
+        const u8 *t;
+        t   = &info->wps_sec_dev_type_list[i * WPS_DEV_TYPE_LEN];
+        res = os_snprintf(pos, end - pos, "sec_dev_type=%s\r\n", wps_dev_type_bin2str(t, devtype, sizeof(devtype)));
+        if (os_snprintf_error(end - pos, res))
+            goto out;
+        pos += res;
+    }
+
+    ssid = wpas_p2p_get_persistent(wpa_s, info->p2p_device_addr, NULL, 0);
+    if (ssid)
+    {
+        res = os_snprintf(pos, end - pos, "persistent=%d\r\n", ssid->id);
+        if (os_snprintf_error(end - pos, res))
+            goto out;
+        pos += res;
+    }
+
+    res = p2p_get_peer_info_txt(info, pos, end - pos);
+    if (res < 0)
+        goto out;
+    pos += res;
+
+    if (info->vendor_elems)
+    {
+        res = os_snprintf(pos, end - pos, "vendor_elems=");
+        if (os_snprintf_error(end - pos, res))
+            goto out;
+        pos += res;
+
+        pos += wpa_snprintf_hex(pos, end - pos, wpabuf_head(info->vendor_elems), wpabuf_len(info->vendor_elems));
+
+        res = os_snprintf(pos, end - pos, "\r\n");
+        if (os_snprintf_error(end - pos, res))
+            goto out;
+        pos += res;
+    }
+
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+    return pos - buf;
 }
 #endif
 

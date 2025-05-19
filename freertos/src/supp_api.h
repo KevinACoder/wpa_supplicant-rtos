@@ -162,6 +162,7 @@ int wpa_supp_dpp_configurator_sign(const struct netif *dev, int is_ap, const cha
 #if CONFIG_WPA_SUPP_P2P
 int wpa_supp_p2p_find(const struct netif *dev, const char *cmd);
 int wpa_supp_p2p_stop_find(const struct netif *dev);
+int wpa_supp_p2p_listen(const struct netif *dev, const char *cmd);
 int wpa_supp_p2p_connect(const struct netif *dev, char *cmd);
 int wpa_supp_p2p_group_add(const struct netif *dev, char *cmd);
 int wpa_supp_p2p_get_passphrase(const struct netif *dev);
@@ -174,6 +175,7 @@ int wpa_supp_p2p_service_add(const struct netif *dev, char *cmd);
 int wpa_supp_p2p_serv_disc_req(const struct netif *dev, char *cmd);
 int wpa_supp_p2p_serv_disc_resp(const struct netif *dev, char *cmd);
 int wpa_supp_p2p_group_remove(const struct netif *dev, char *cmd);
+int wpa_supp_p2p_peer(const struct netif *dev, char *cmd, char *buf, size_t buflen);
 #endif
 
 #if CONFIG_HOSTAPD
