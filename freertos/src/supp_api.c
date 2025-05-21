@@ -55,6 +55,9 @@
 #if CONFIG_WPA_SUPP_P2P
 #include "p2p/p2p.h"
 #include "p2p_supplicant.h"
+#include "l2_packet/l2_packet.h"
+#include "rsn_supp/preauth.h"
+#include "utils/uuid.h"
 #endif
 
 #define EAP_TTLS_AUTH_PAP      1
@@ -5918,6 +5921,225 @@ int wpa_supp_p2p_peer(const struct netif *dev, char *cmd, char *buf, size_t bufl
         if (os_snprintf_error(end - pos, res))
             goto out;
         pos += res;
+    }
+
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+    return pos - buf;
+}
+
+int wpa_supp_p2p_status(const struct netif *dev, char *buf, size_t buflen)
+{
+    char *pos, *end, tmp[30];
+    int res, verbose, wps, ret;
+
+    const u8 *sess_id;
+    size_t sess_id_len;
+
+    struct wpa_supplicant *wpa_s;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_GROUP_REMOVE since no wpa_s");
+        return -1;
+    }
+
+    verbose = 1;
+    wps     = 1;
+    pos     = buf;
+    end     = buf + buflen;
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    if (wpa_s->wpa_state >= WPA_ASSOCIATED)
+    {
+        struct wpa_ssid *ssid = wpa_s->current_ssid;
+        ret                   = os_snprintf(pos, end - pos, "bssid=" MACSTR "\r\n", MAC2STR(wpa_s->bssid));
+        if (os_snprintf_error(end - pos, ret))
+            goto out;
+        pos += ret;
+        ret = os_snprintf(pos, end - pos, "freq=%u\r\n", wpa_s->assoc_freq);
+        if (os_snprintf_error(end - pos, ret))
+            goto out;
+        pos += ret;
+        if (ssid)
+        {
+            u8 *_ssid       = ssid->ssid;
+            size_t ssid_len = ssid->ssid_len;
+            u8 ssid_buf[SSID_MAX_LEN];
+            if (ssid_len == 0)
+            {
+                int _res = wpa_drv_get_ssid(wpa_s, ssid_buf);
+                if (_res < 0)
+                    ssid_len = 0;
+                else
+                    ssid_len = _res;
+                _ssid = ssid_buf;
+            }
+            ret = os_snprintf(pos, end - pos, "ssid=%s\r\nid=%d\r\n", wpa_ssid_txt(_ssid, ssid_len), ssid->id);
+            if (os_snprintf_error(end - pos, ret))
+                goto out;
+            pos += ret;
+
+            if (wps && ssid->passphrase && wpa_key_mgmt_wpa_psk(ssid->key_mgmt) &&
+                (ssid->mode == WPAS_MODE_AP || ssid->mode == WPAS_MODE_P2P_GO))
+            {
+                ret = os_snprintf(pos, end - pos, "passphrase=%s\r\n", ssid->passphrase);
+                if (os_snprintf_error(end - pos, ret))
+                    goto out;
+                pos += ret;
+            }
+            if (ssid->id_str)
+            {
+                ret = os_snprintf(pos, end - pos, "id_str=%s\r\n", ssid->id_str);
+                if (os_snprintf_error(end - pos, ret))
+                    goto out;
+                pos += ret;
+            }
+
+            switch (ssid->mode)
+            {
+                case WPAS_MODE_INFRA:
+                    ret = os_snprintf(pos, end - pos, "mode=station\r\n");
+                    break;
+                case WPAS_MODE_IBSS:
+                    ret = os_snprintf(pos, end - pos, "mode=IBSS\r\n");
+                    break;
+                case WPAS_MODE_AP:
+                    ret = os_snprintf(pos, end - pos, "mode=AP\r\n");
+                    break;
+                case WPAS_MODE_P2P_GO:
+                    ret = os_snprintf(pos, end - pos, "mode=P2P GO\r\n");
+                    break;
+                case WPAS_MODE_P2P_GROUP_FORMATION:
+                    ret = os_snprintf(pos, end - pos,
+                                      "mode=P2P GO - group "
+                                      "formation\r\n");
+                    break;
+                case WPAS_MODE_MESH:
+                    ret = os_snprintf(pos, end - pos, "mode=mesh\r\n");
+                    break;
+                default:
+                    ret = 0;
+                    break;
+            }
+            if (os_snprintf_error(end - pos, ret))
+                goto out;
+            pos += ret;
+        }
+
+        if (wpa_s->connection_set && (wpa_s->connection_ht || wpa_s->connection_vht || wpa_s->connection_he))
+        {
+            ret = os_snprintf(pos, end - pos, "wifi_generation=%u\r\n",
+                              wpa_s->connection_he ? 6 : (wpa_s->connection_vht ? 5 : 4));
+            if (os_snprintf_error(end - pos, ret))
+                goto out;
+            pos += ret;
+        }
+
+#ifdef CONFIG_AP
+        if (wpa_s->ap_iface)
+        {
+            pos += ap_ctrl_iface_wpa_get_status(wpa_s, pos, end - pos, verbose);
+        }
+        else
+#endif /* CONFIG_AP */
+            pos += wpa_sm_get_status(wpa_s->wpa, pos, end - pos, verbose);
+    }
+#ifdef CONFIG_SME
+#ifdef CONFIG_SAE
+    if (wpa_s->wpa_state >= WPA_ASSOCIATED &&
+#ifdef CONFIG_AP
+        !wpa_s->ap_iface &&
+#endif /* CONFIG_AP */
+        wpa_s->sme.sae.state == SAE_ACCEPTED)
+    {
+        ret = os_snprintf(pos, end - pos,
+                          "sae_group=%d\r\n"
+                          "sae_h2e=%d\r\n"
+                          "sae_pk=%d\r\n",
+                          wpa_s->sme.sae.group, wpa_s->sme.sae.h2e, wpa_s->sme.sae.pk);
+        if (os_snprintf_error(end - pos, ret))
+            goto out;
+        pos += ret;
+    }
+#endif /* CONFIG_SAE */
+#endif /* CONFIG_SME */
+    ret = os_snprintf(pos, end - pos, "wpa_state=%s\r\n", wpa_supplicant_state_txt(wpa_s->wpa_state));
+    if (os_snprintf_error(end - pos, ret))
+        goto out;
+    pos += ret;
+
+    if (wpa_s->l2 && l2_packet_get_ip_addr(wpa_s->l2, tmp, sizeof(tmp)) >= 0)
+    {
+        ret = os_snprintf(pos, end - pos, "ip_address=%s\r\n", tmp);
+        if (os_snprintf_error(end - pos, ret))
+            goto out;
+        pos += ret;
+    }
+
+#ifdef CONFIG_P2P
+    if (wpa_s->global->p2p)
+    {
+        ret = os_snprintf(pos, end - pos, "p2p_device_address=" MACSTR "\r\n", MAC2STR(wpa_s->global->p2p_dev_addr));
+        if (os_snprintf_error(end - pos, ret))
+            goto out;
+        pos += ret;
+    }
+#endif /* CONFIG_P2P */
+
+    ret = os_snprintf(pos, end - pos, "address=" MACSTR "\r\n", MAC2STR(wpa_s->own_addr));
+    if (os_snprintf_error(end - pos, ret))
+        goto out;
+    pos += ret;
+
+    if (wpa_key_mgmt_wpa_ieee8021x(wpa_s->key_mgmt) || wpa_s->key_mgmt == WPA_KEY_MGMT_IEEE8021X_NO_WPA)
+    {
+        res = eapol_sm_get_status(wpa_s->eapol, pos, end - pos, verbose);
+        if (res >= 0)
+            pos += res;
+    }
+
+    sess_id = eapol_sm_get_session_id(wpa_s->eapol, &sess_id_len);
+    if (sess_id)
+    {
+        char *start = pos;
+
+        ret = os_snprintf(pos, end - pos, "eap_session_id=");
+        if (os_snprintf_error(end - pos, ret))
+            goto out;
+        pos += ret;
+        ret = wpa_snprintf_hex(pos, end - pos, sess_id, sess_id_len);
+        if (ret <= 0)
+            goto out;
+        pos += ret;
+        ret = os_snprintf(pos, end - pos, "\r\n");
+        if (os_snprintf_error(end - pos, ret))
+            goto out;
+        pos += ret;
+    }
+
+    res = rsn_preauth_get_status(wpa_s->wpa, pos, end - pos, verbose);
+    if (res >= 0)
+        pos += res;
+
+#ifdef CONFIG_WPS
+    {
+        char uuid_str[100];
+        uuid_bin2str(wpa_s->wps->uuid, uuid_str, sizeof(uuid_str));
+        ret = os_snprintf(pos, end - pos, "uuid=%s\r\n", uuid_str);
+        if (os_snprintf_error(end - pos, ret))
+            goto out;
+        pos += ret;
+    }
+#endif /* CONFIG_WPS */
+
+    if (wpa_s->ieee80211ac)
+    {
+        ret = os_snprintf(pos, end - pos, "ieee80211ac=1\r\n");
+        if (os_snprintf_error(end - pos, ret))
+            goto out;
+        pos += ret;
     }
 
 out:
