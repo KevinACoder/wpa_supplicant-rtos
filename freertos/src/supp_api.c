@@ -5979,6 +5979,40 @@ out:
      OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
      return ret;
 }
+
+int wpa_supp_p2p_update_mode_info(struct wlan_network *network)
+{
+    int ret                      = 0;
+    struct wpa_supplicant *wpa_s = NULL;
+    struct wpa_ssid *p2p_ssid    = NULL;
+    struct netif *netif          = net_get_wfd_interface();
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+    wpa_s = get_wpa_s_handle(netif);
+    if (!wpa_s)
+    {
+        ret = -1;
+        goto out;
+    }
+
+    if (network == NULL)
+    {
+        ret = -1;
+        goto out;
+    }
+    p2p_ssid = wpa_s->current_ssid;
+
+#if CONFIG_11AX
+    network->dot11ax &= p2p_ssid->he;
+#endif
+#if CONFIG_11AC
+    network->dot11ac &= p2p_ssid->vht;
+#endif
+    network->dot11n &= p2p_ssid->ht;
+
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+    return ret;
+}
 #endif
 
 int wpa_supp_status(const struct netif *dev)
