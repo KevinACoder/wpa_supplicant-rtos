@@ -6394,7 +6394,7 @@ int wpa_supp_network_status(const struct netif *dev, struct wlan_network *networ
 
             network->dot11n = wpa_s->connection_ht;
 #if CONFIG_11AC
-            network->dot11ac = wpa_s->connection_vht;
+            network->dot11ac = wlan_11ac_allowed(network);
 #endif
 #if CONFIG_11AX
             network->dot11ax = wpa_s->connection_he;
