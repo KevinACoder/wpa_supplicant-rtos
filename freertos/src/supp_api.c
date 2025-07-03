@@ -4884,6 +4884,28 @@ out:
     return ret;
 }
 
+int wpa_supp_p2p_set_listen_channel(const struct netif *dev, t_u8 channel, t_u8 op_class)
+{
+    struct wpa_supplicant *wpa_s;
+    int ret = 0;
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        ret = -1;
+        goto out;
+    }
+
+    ret = p2p_set_listen_channel(wpa_s->global->p2p, op_class, channel, 1);
+
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+    return ret;
+}
+
 int wpa_supp_p2p_listen(const struct netif *dev, const char *cmd)
 {
     unsigned int timeout = atoi(cmd);

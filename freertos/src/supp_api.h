@@ -162,6 +162,7 @@ int wpa_supp_dpp_configurator_sign(const struct netif *dev, int is_ap, const cha
 #if CONFIG_WPA_SUPP_P2P
 int wpa_supp_p2p_find(const struct netif *dev, const char *cmd);
 int wpa_supp_p2p_stop_find(const struct netif *dev);
+int wpa_supp_p2p_set_listen_channel(const struct netif *dev, t_u8 channel, t_u8 op_class);
 int wpa_supp_p2p_listen(const struct netif *dev, const char *cmd);
 int wpa_supp_p2p_connect(const struct netif *dev, char *cmd);
 int wpa_supp_p2p_group_add(const struct netif *dev, char *cmd);
