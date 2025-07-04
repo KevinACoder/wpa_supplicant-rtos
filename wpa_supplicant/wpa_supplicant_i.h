@@ -1574,6 +1574,12 @@ struct wpa_supplicant
     unsigned int enable_dscp_policy_capa : 1;
     unsigned int connection_dscp : 1;
     unsigned int wait_for_dscp_req : 1;
+
+#ifdef CONFIG_NAN_USD
+    struct nan_de *nan_de;
+    struct wpa_radio_work *nan_usd_listen_work;
+    struct wpa_radio_work *nan_usd_tx_work;
+#endif /* CONFIG_NAN_USD */
 };
 
 /* wpa_supplicant.c */

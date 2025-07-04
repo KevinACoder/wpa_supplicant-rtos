@@ -49,6 +49,7 @@
 #include "mesh.h"
 #include "mesh_mpm.h"
 #include "wmm_ac.h"
+#include "nan_usd.h"
 #include "dpp_supplicant.h"
 
 #define MAX_OWE_TRANSITION_BSS_SELECT_COUNT 5
@@ -4290,6 +4291,17 @@ static void wpas_event_rx_mgmt_action(struct wpa_supplicant *wpa_s, const u8 *fr
     }
 #endif /* CONFIG_FST */
 
+#ifdef CONFIG_NAN_USD
+    if (category == WLAN_ACTION_PUBLIC && plen >= 5 &&
+        payload[0] == WLAN_PA_VENDOR_SPECIFIC &&
+        WPA_GET_BE32(&payload[1]) == NAN_SDF_VENDOR_TYPE) {
+        payload += 5;
+        plen -= 5;
+        wpas_nan_usd_rx_sdf(wpa_s, mgmt->sa, mgmt->bssid, freq, payload, plen);
+        return;
+    }
+#endif /* CONFIG_NAN_USD */
+
 #ifdef CONFIG_DPP
     if (category == WLAN_ACTION_PUBLIC && plen >= 5 && payload[0] == WLAN_PA_VENDOR_SPECIFIC &&
         WPA_GET_BE24(&payload[1]) == OUI_WFA && payload[4] == DPP_OUI_TYPE)
@@ -5143,6 +5155,9 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event, union wpa_event_
 #ifdef CONFIG_DPP
             wpas_dpp_remain_on_channel_cb(wpa_s, data->remain_on_channel.freq, data->remain_on_channel.duration);
 #endif /* CONFIG_DPP */
+#ifdef CONFIG_NAN_USD
+            wpas_nan_usd_remain_on_channel_cb(wpa_s, data->remain_on_channel.freq, data->remain_on_channel.duration);
+#endif /* CONFIG_NAN_USD */
             break;
         case EVENT_CANCEL_REMAIN_ON_CHANNEL:
 #ifdef CONFIG_OFFCHANNEL
@@ -5152,6 +5167,9 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event, union wpa_event_
 #ifdef CONFIG_DPP
             wpas_dpp_cancel_remain_on_channel_cb(wpa_s, data->remain_on_channel.freq);
 #endif /* CONFIG_DPP */
+#ifdef CONFIG_NAN_USD
+            wpas_nan_usd_cancel_remain_on_channel_cb(wpa_s, data->remain_on_channel.freq);
+#endif /* CONFIG_NAN_USD */
             break;
         case EVENT_EAPOL_RX:
             wpa_supplicant_rx_eapol(wpa_s, data->eapol_rx.src, data->eapol_rx.data, data->eapol_rx.data_len);
@@ -5433,6 +5451,9 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event, union wpa_event_
 #ifdef CONFIG_DPP
             wpas_dpp_tx_wait_expire(wpa_s);
 #endif /* CONFIG_DPP */
+#ifdef CONFIG_NAN_USD
+            wpas_nan_usd_tx_wait_expire(wpa_s);
+#endif /* CONFIG_NAN_USD */
             break;
         default:
             wpa_msg(wpa_s, MSG_INFO, "Unknown event %d", event);

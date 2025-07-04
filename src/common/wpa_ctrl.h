@@ -213,6 +213,13 @@ extern "C" {
 #define DPP_EVENT_CHIRP_RX             "DPP-CHIRP-RX "
 #define DPP_EVENT_CONF_NEEDED          "DPP-CONF-NEEDED "
 
+/* Wi-Fi Aware (NAN USD) events */
+#define NAN_DISCOVERY_RESULT           "NAN-DISCOVERY-RESULT "
+#define NAN_REPLIED                    "NAN-REPLIED "
+#define NAN_PUBLISH_TERMINATED         "NAN-PUBLISH-TERMINATED "
+#define NAN_SUBSCRIBE_TERMINATED       "NAN-SUBSCRIBE-TERMINATED "
+#define NAN_RECEIVE                    "NAN-RECEIVE "
+
 /* MESH events */
 #define MESH_GROUP_STARTED     "MESH-GROUP-STARTED "
 #define MESH_GROUP_REMOVED     "MESH-GROUP-REMOVED "

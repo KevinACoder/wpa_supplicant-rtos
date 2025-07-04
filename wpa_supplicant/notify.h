@@ -131,5 +131,25 @@ void wpas_notify_interworking_ap_added(struct wpa_supplicant *wpa_s,
                                        int bss_load,
                                        int conn_capab);
 void wpas_notify_interworking_select_done(struct wpa_supplicant *wpa_s);
+void wpas_notify_nan_discovery_result(struct wpa_supplicant *wpa_s,
+                                                   enum nan_service_protocol_type srv_proto_type,
+                                                   int subscribe_id, int peer_publish_id,
+                                                   const u8 *peer_addr,
+                                                   bool fsd, bool fsd_gas,
+                                                   const u8 *ssi, size_t ssi_len);
+void wpas_notify_nan_replied(struct wpa_supplicant *wpa_s,
+                                      enum nan_service_protocol_type srv_proto_type,
+                                      int publish_id, int peer_subscribe_id,
+                                      const u8 *peer_addr,
+                                      const u8 *ssi, size_t ssi_len);
+void wpas_notify_nan_receive(struct wpa_supplicant *wpa_s, int id,
+                                      int peer_instance_id, const u8 *peer_addr,
+                                      const u8 *ssi, size_t ssi_len);
+void wpas_notify_nan_publish_terminated(struct wpa_supplicant *wpa_s,
+                                                     int publish_id,
+                                                     enum nan_de_reason reason);
+void wpas_notify_nan_subscribe_terminated(struct wpa_supplicant *wpa_s,
+                                                        int subscribe_id,
+                                                        enum nan_de_reason reason);
 
 #endif /* NOTIFY_H */

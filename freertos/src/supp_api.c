@@ -63,6 +63,11 @@
 #include "utils/uuid.h"
 #endif
 
+#if CONFIG_WPA_SUPP_NAN_USD
+#include "common/nan_de.h"
+#include "nan_usd.h"
+#endif
+
 #define EAP_TTLS_AUTH_PAP      1
 #define EAP_TTLS_AUTH_CHAP     2
 #define EAP_TTLS_AUTH_MSCHAP   4
@@ -6335,6 +6340,251 @@ out:
     return ret;
 }
 #endif
+
+#if CONFIG_WPA_SUPP_NAN_USD
+int wpa_supp_nan_publish(const struct netif *dev, wlan_nan_publish_params_t *nan_publish)
+{
+    struct wpa_supplicant *wpa_s;
+    int publish_id;
+    struct nan_publish_params params;
+    struct wpabuf *ssi = NULL;
+    int ret = -1;
+    int *freq_list = NULL;
+    bool p2p = false;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject NAN_PUBLISH since no wpa_s");
+        return -1;
+    }
+
+    os_memset(&params, 0, sizeof(params));
+    /* USD shall use both solicited and unsolicited transmissions */
+    params.unsolicited = true;
+    params.solicited = true;
+    /* USD shall require FSD without GAS */
+    params.fsd = true;
+    params.freq = NAN_USD_DEFAULT_FREQ;
+
+    params.ttl = nan_publish->ttl;
+    params.freq = nan_publish->freq;
+
+    char *pos = nan_publish->freq_list;
+    if (pos && os_strcmp(pos, "all") == 0)
+    {
+        os_free(freq_list);
+        freq_list = wpas_nan_usd_all_freqs(wpa_s);
+        params.freq_list = freq_list;
+    }
+    while (pos && pos[0])
+    {
+        int_array_add_unique(&freq_list, atoi(pos));
+        pos = os_strchr(pos, ',');
+        if (pos)
+            pos++;
+	}
+	params.freq_list = freq_list;
+
+    if (ssi)
+        goto fail;
+    ssi = wpabuf_parse_bin(nan_publish->ssi);
+    if (!ssi)
+        goto fail;
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    publish_id = wpas_nan_usd_publish(wpa_s, nan_publish->service_name,
+                                      nan_publish->srv_proto_type,
+                                      ssi, &params, p2p);
+    if (publish_id > 0)
+    {
+        ret = publish_id;
+    }
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+fail:
+    wpabuf_free(ssi);
+    os_free(freq_list);
+    return ret;
+}
+
+int wpa_supp_nan_cancel_publish(const struct netif *dev, unsigned int publish_id)
+{
+    struct wpa_supplicant *wpa_s;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject NAN_CANCEL_PUBLISH since no wpa_s");
+        return -1;
+    }
+
+    if (publish_id <= 0)
+    {
+        wpa_printf(MSG_INFO, "CTRL: Invalid or missing NAN_CANCEL_PUBLISH publish_id");
+        return -1;
+    }
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    wpas_nan_usd_cancel_publish(wpa_s, publish_id);
+
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+    return 0;
+}
+
+int wpa_supp_nan_update_publish(const struct netif *dev, int publish_id, char *ssi_update)
+{
+    struct wpa_supplicant *wpa_s;
+    struct wpabuf *ssi = NULL;
+    int ret = -1;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_printf(MSG_INFO, "Reject NAN update publish since no wpa_s");
+        return -1;
+    }
+
+    if (publish_id <= 0) {
+        wpa_printf(MSG_INFO, "Invalid or missing publish_id");
+        goto fail;
+    }
+
+    if (ssi)
+        goto fail;
+    if (ssi_update)
+    {
+        ssi = wpabuf_parse_bin(ssi_update);
+        if (!ssi)
+            goto fail;
+    }
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    ret = wpas_nan_usd_update_publish(wpa_s, publish_id, ssi);
+
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+fail:
+    wpabuf_free(ssi);
+    return ret;
+}
+
+int wpa_supp_nan_subscribe(const struct netif *dev, wlan_nan_subscribe_params_t *nan_subscribe)
+{
+    struct wpa_supplicant *wpa_s;
+    int subscribe_id;
+    struct nan_subscribe_params params;
+    struct wpabuf *ssi = NULL;
+    int ret = -1;
+    bool p2p = false;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_printf(MSG_INFO, "Reject NAN subscribe since no wpa_s");
+        return -1;
+    }
+
+    os_memset(&params, 0, sizeof(params));
+    params.freq = NAN_USD_DEFAULT_FREQ;
+
+    params.active = nan_subscribe->active;
+    params.ttl = nan_subscribe->ttl;
+    params.freq = nan_subscribe->freq;
+
+    if (ssi)
+        goto fail;
+    ssi = wpabuf_parse_bin(nan_subscribe->ssi);
+    if (!ssi)
+        goto fail;
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    subscribe_id = wpas_nan_usd_subscribe(wpa_s, nan_subscribe->service_name,
+                                          nan_subscribe->srv_proto_type,
+                                          ssi, &params, p2p);
+    if (subscribe_id > 0)
+        ret = subscribe_id;
+
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+fail:
+    wpabuf_free(ssi);
+    return ret;
+}
+
+int wpa_supp_nan_cancel_subscribe(const struct netif *dev, unsigned int subscribe_id)
+{
+    struct wpa_supplicant *wpa_s;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_printf(MSG_INFO, "Reject NAN cancel subscribe since no wpa_s");
+        return -1;
+    }
+
+    if (subscribe_id <= 0)
+    {
+        wpa_printf(MSG_INFO, "Invalid or missing subscribe_id");
+        return -1;
+    }
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    wpas_nan_usd_cancel_subscribe(wpa_s, subscribe_id);
+
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+    return 0;
+}
+
+int wpa_supp_nan_transmit(const struct netif *dev, int handle, int req_instance_id, u8 *peer_mac, char *ssi_tx)
+{
+    struct wpa_supplicant *wpa_s;
+    struct wpabuf *ssi = NULL;
+    int ret = -1;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_printf(MSG_INFO, "Reject NAN transmit since no wpa_s");
+        return -1;
+    }
+
+    if (ssi)
+        goto fail;
+    ssi = wpabuf_parse_bin(ssi_tx);
+    if (!ssi)
+        goto fail;
+
+
+    if (handle <= 0)
+    {
+        wpa_printf(MSG_INFO, "Invalid or missing NAN transmit handle");
+        goto fail;
+    }
+
+    if (is_zero_ether_addr(peer_mac))
+    {
+        wpa_printf(MSG_INFO, "Invalid or missing NAN transmit peer_mac");
+        goto fail;
+    }
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    ret = wpas_nan_usd_transmit(wpa_s, handle, ssi, NULL, peer_mac, req_instance_id);
+
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+fail:
+    wpabuf_free(ssi);
+    return ret;
+}
+#endif /* CONFIG_WPA_SUPP_NAN_USD */
 
 int wpa_supp_status(const struct netif *dev)
 {

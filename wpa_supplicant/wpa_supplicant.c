@@ -64,6 +64,7 @@
 #include "wpas_kay.h"
 #include "mesh.h"
 #include "dpp_supplicant.h"
+#include "nan_usd.h"
 #ifdef CONFIG_MESH
 #include "ap/ap_config.h"
 #include "ap/hostapd.h"
@@ -727,6 +728,10 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
     dpp_global_deinit(wpa_s->dpp);
     wpa_s->dpp = NULL;
 #endif /* CONFIG_DPP */
+
+#ifdef CONFIG_NAN_USD
+    wpas_nan_usd_deinit(wpa_s);
+#endif /* CONFIG_NAN_USD */
 
 #ifdef CONFIG_PASN
     wpas_pasn_auth_stop(wpa_s);
@@ -5364,7 +5369,9 @@ int wpa_supplicant_update_mac_addr(struct wpa_supplicant *wpa_s)
 
     wpa_sm_set_own_addr(wpa_s->wpa, wpa_s->own_addr);
     wpas_wps_update_mac_addr(wpa_s);
-
+#ifdef CONFIG_NAN_USD
+    wpas_nan_usd_update_mac_addr(wpa_s);
+#endif /* CONFIG_NAN_USD */
 #ifdef CONFIG_FST
     if (wpa_s->fst)
         fst_update_mac_addr(wpa_s->fst, wpa_s->own_addr);
@@ -6919,6 +6926,11 @@ static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s, const struct 
     if (wpas_dpp_init(wpa_s) < 0)
         return -1;
 #endif /* CONFIG_DPP */
+
+#ifdef CONFIG_NAN_USD
+    if (wpas_nan_usd_init(wpa_s) < 0)
+        return -1;
+#endif /* CONFIG_NAN_USD */
 
     if (wpa_supplicant_init_eapol(wpa_s) < 0)
         return -1;

@@ -182,6 +182,15 @@ int wpa_supp_p2p_status(const struct netif *dev, char *buf, size_t buflen);
 int wpa_supp_p2p_list_network(const struct netif *dev, char *buf, size_t buflen);
 #endif
 
+#if CONFIG_WPA_SUPP_NAN_USD
+int wpa_supp_nan_publish(const struct netif *dev, wlan_nan_publish_params_t *nan_publish);
+int wpa_supp_nan_cancel_publish(const struct netif *dev, unsigned int publish_id);
+int wpa_supp_nan_update_publish(const struct netif *dev, int publish_id, char *ssi_update);
+int wpa_supp_nan_subscribe(const struct netif *dev, wlan_nan_subscribe_params_t *nan_subscribe);
+int wpa_supp_nan_cancel_subscribe(const struct netif *dev, unsigned int subscribe_id);
+int wpa_supp_nan_transmit(const struct netif *dev, int handle, int req_instance_id, u8 *peer_mac, char *ssi_tx);
+#endif
+
 #if CONFIG_HOSTAPD
 int wpa_supp_start_ap(const struct netif *dev, struct wlan_network *network, int reload);
 

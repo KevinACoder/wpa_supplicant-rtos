@@ -325,6 +325,9 @@ static void wpa_drv_freertos_event_mgmt_tx_status(struct freertos_drv_if_ctx *if
 #endif
 #endif
         wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_TX_STATUS, &event);
+#ifdef CONFIG_NAN_USD
+    wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_TX_WAIT_EXPIRE, &event);
+#endif
 }
 
 static void wpa_drv_freertos_event_proc_unprot_deauth(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event)

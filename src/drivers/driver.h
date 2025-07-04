@@ -22,6 +22,8 @@
 #include "common/defs.h"
 #include "common/ieee802_11_defs.h"
 #include "common/wpa_common.h"
+#include "common/nan.h"
+#include "common/nan_de.h"
 #ifdef CONFIG_MACSEC
 #include "pae/ieee802_1x_kay.h"
 #endif /* CONFIG_MACSEC */
@@ -2065,6 +2067,8 @@ struct wpa_driver_capa
 #define WPA_DRIVER_RADAR_BACKGROUND 0x0000000000000400ULL
 /** Driver supports RSN override elements */
 #define WPA_DRIVER_FLAGS2_RSN_OVERRIDE_STA 0x0000000000400000ULL
+/** Driver supports NAN offload */
+#define WPA_DRIVER_FLAGS2_NAN_OFFLOAD 0x0000000000800000ULL
     u64 flags2;
 
 #define FULL_AP_CLIENT_STATE_SUPP(drv_flags) (drv_flags & WPA_DRIVER_FLAGS_FULL_AP_CLIENT_STATE)
@@ -4618,6 +4622,77 @@ struct wpa_driver_ops
      * explicitly allow reception of broadcast Public Action frames.
      */
     int (*dpp_listen)(void *priv, bool enable);
+
+	/**
+	 * nan_flush - Flush all NAN offload services
+	 * @priv: Private driver interface data
+	 * Returns: 0 on success, negative value on failure
+	 */
+	int (*nan_flush)(void *priv);
+
+	/**
+	 * nan_publish - NAN offload for Publish()
+	 * @priv: Private driver interface data
+	 * @src: Source P2P device addr
+	 * @publish_id: Publish instance to add
+	 * @service_name: Service name
+	 * @service_id: Service ID (6 octet value derived from service name)
+	 * @srv_proto_type: Service protocol type
+	 * @ssi: Service specific information or %NULL
+	 * @elems: Information elements for Element Container attribute or %NULL
+	 * @params: Configuration parameters
+	 * Returns: 0 on success, negative value on failure
+	 */
+	int (*nan_publish)(void *priv, const u8 *src, int publish_id,
+					   const char *service_name, const u8 *service_id,
+					   enum nan_service_protocol_type srv_proto_type,
+					   const struct wpabuf *ssi, const struct wpabuf *elems,
+					   struct nan_publish_params *params);
+
+	/**
+	 * nan_cancel_publish - NAN offload for CancelPublish()
+	 * @priv: Private driver interface data
+	 * @publish_id: Publish instance to cancel
+	 * Returns: 0 on success, negative value on failure
+	 */
+	int (*nan_cancel_publish)(void *priv, int publish_id);
+
+	/**
+	 * nan_update_publish - NAN offload for UpdatePublish()
+	 * @priv: Private driver interface data
+	 * @ssi: Service specific information or %NULL
+	 * Returns: 0 on success, negative value on failure
+	 */
+	int (*nan_update_publish)(void *priv, int publish_id,
+					          const struct wpabuf *ssi);
+
+	/**
+	 * nan_subscribe - NAN offload for Subscribe()
+	 * @priv: Private driver interface data
+	 * @src: Source P2P device addr
+	 * @subscribe_id: Subscribe instance to add
+	 * @service_name: Service name
+	 * @service_id: Service ID (6 octet value derived from service name)
+	 * @srv_proto_type: Service protocol type
+	 * @ssi: Service specific information or %NULL
+	 * @elems: Information elements for Element Container attribute or %NULL
+	 * @params: Configuration parameters
+	 * Returns: 0 on success, negative value on failure
+	 */
+	int (*nan_subscribe)(void *priv, const u8 *src, int subscribe_id,
+					     const char *service_name, const u8 *service_id,
+					     enum nan_service_protocol_type srv_proto_type,
+					     const struct wpabuf *ssi,
+					     const struct wpabuf *elems,
+					     struct nan_subscribe_params *params);
+
+	/**
+	 * nan_cancel_subscribe - NAN offload for CancelSubscribe()
+	 * @priv: Private driver interface data
+	 * @subscribe_id: Subscribe instance to cancel
+	 * Returns: 0 on success, negative value on failure
+	 */
+	int (*nan_cancel_subscribe)(void *priv, int subscribe_id);
 
 #ifdef CONFIG_TESTING_OPTIONS
     int (*register_frame)(void *priv, u16 type, const u8 *match, size_t match_len, bool multicast);

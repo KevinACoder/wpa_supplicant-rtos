@@ -471,6 +471,11 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 src/wps/wps_i.h
                 src/wps/wps_upnp.h
                 src/wps/wps_upnp_i.h
+                src/common/nan.h
+                src/common/nan_de.h
+                src/common/nan_de.c
+                wpa_supplicant/nan_usd.h
+                wpa_supplicant/nan_usd.c
         BASE_PATH ${SdkRootDirPath}/middleware/wireless/wpa_supplicant-rtos/
     )
     mcux_add_include(
