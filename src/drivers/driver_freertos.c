@@ -174,25 +174,6 @@ void wpa_drv_freertos_event_proc_scan_start(struct freertos_drv_if_ctx *if_ctx)
     wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_SCAN_STARTED, NULL);
 }
 
-void wpa_drv_freertos_event_proc_scan_abort(struct freertos_drv_if_ctx *if_ctx)
-{
-    union wpa_event_data event;
-    struct scan_info *info = NULL;
-
-    wpa_printf(MSG_DEBUG, "%s: Scan aborted by driver", __func__);
-
-    if_ctx->scan_res2_get_in_prog = false;
-
-    memset(&event, 0, sizeof(event));
-
-    info                = &event.scan_info;
-    info->aborted       = 1;
-    info->external_scan = 0;
-    info->nl_scan_event = 1;
-
-    wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_SCAN_RESULTS, &event);
-}
-
 void wpa_drv_freertos_event_proc_scan_done(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event)
 {
     eloop_cancel_timeout(wpa_drv_freertos_scan_timeout, if_ctx, if_ctx->supp_if_ctx);
@@ -527,7 +508,6 @@ static void *wpa_drv_freertos_init(void *ctx, const char *ifname, void *global_p
     os_memset(&callbk_fns, 0, sizeof(callbk_fns));
 
     callbk_fns.scan_start        = wpa_drv_freertos_event_proc_scan_start;
-    callbk_fns.scan_abort        = wpa_drv_freertos_event_proc_scan_abort;
     callbk_fns.scan_done         = wpa_drv_freertos_event_proc_scan_done;
     callbk_fns.survey_res        = wpa_drv_freertos_event_proc_survey_res;
     callbk_fns.auth_resp         = wpa_drv_freertos_event_proc_auth_resp;
