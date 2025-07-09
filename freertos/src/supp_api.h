@@ -179,6 +179,7 @@ int wpa_supp_p2p_serv_disc_resp(const struct netif *dev, char *cmd);
 int wpa_supp_p2p_group_remove(const struct netif *dev, char *cmd);
 int wpa_supp_p2p_peer(const struct netif *dev, char *cmd, char *buf, size_t buflen);
 int wpa_supp_p2p_status(const struct netif *dev, char *buf, size_t buflen);
+int wpa_supp_p2p_list_network(const struct netif *dev, char *buf, size_t buflen);
 #endif
 
 #if CONFIG_HOSTAPD

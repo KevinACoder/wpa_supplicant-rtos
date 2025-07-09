@@ -5839,7 +5839,7 @@ int wpa_supp_p2p_peer(const struct netif *dev, char *cmd, char *buf, size_t bufl
     wpa_s = get_wpa_s_handle(dev);
     if (!wpa_s)
     {
-        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_GROUP_REMOVE since no wpa_s");
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_PEER since no wpa_s");
         return -1;
     }
 
@@ -5966,7 +5966,7 @@ int wpa_supp_p2p_status(const struct netif *dev, char *buf, size_t buflen)
     wpa_s = get_wpa_s_handle(dev);
     if (!wpa_s)
     {
-        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_GROUP_REMOVE since no wpa_s");
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_STATUS since no wpa_s");
         return -1;
     }
 
@@ -6185,6 +6185,64 @@ int wpa_supp_p2p_status(const struct netif *dev, char *buf, size_t buflen)
 
 out:
     OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+    return pos - buf;
+}
+
+int wpa_supp_p2p_list_network(const struct netif *dev, char *buf, size_t buflen)
+{
+    char *pos, *end, *prev;
+    struct wpa_ssid *ssid;
+    int ret;
+    struct wpa_supplicant *wpa_s;
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s)
+    {
+        wpa_dbg(wpa_s, MSG_INFO, "Reject P2P_LIST_NETWORK since no wpa_s");
+        return -1;
+    }
+
+    pos = buf;
+    end = buf + buflen;
+    ret = os_snprintf(pos, end - pos, "network id / ssid / bssid / flags\r\n");
+    if (os_snprintf_error(end - pos, ret))
+        return pos - buf;
+    pos += ret;
+
+    ssid = wpa_s->conf->ssid;
+
+    while (ssid)
+    {
+        prev = pos;
+        ret  = os_snprintf(pos, end - pos, "%d\t%s", ssid->id, wpa_ssid_txt(ssid->ssid, ssid->ssid_len));
+        if (os_snprintf_error(end - pos, ret))
+            return prev - buf;
+        pos += ret;
+        if (ssid->bssid_set)
+        {
+            ret = os_snprintf(pos, end - pos, "\t" MACSTR, MAC2STR(ssid->bssid));
+        }
+        else
+        {
+            ret = os_snprintf(pos, end - pos, "\tany");
+        }
+        if (os_snprintf_error(end - pos, ret))
+            return prev - buf;
+        pos += ret;
+        ret = os_snprintf(pos, end - pos, "\t%s%s%s%s", ssid == wpa_s->current_ssid ? "[CURRENT]" : "",
+                          ssid->disabled ? "[DISABLED]" : "", ssid->disabled_until.sec ? "[TEMP-DISABLED]" : "",
+                          ssid->disabled == 2 ? "[P2P-PERSISTENT]" : "");
+        if (os_snprintf_error(end - pos, ret))
+            return prev - buf;
+        pos += ret;
+        ret = os_snprintf(pos, end - pos, "\r\n");
+        if (os_snprintf_error(end - pos, ret))
+            return prev - buf;
+        pos += ret;
+
+        ssid = ssid->next;
+    }
+
     return pos - buf;
 }
 #endif
