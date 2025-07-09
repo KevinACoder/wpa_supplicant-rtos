@@ -5976,6 +5976,11 @@ int wpa_supp_p2p_status(const struct netif *dev, char *buf, size_t buflen)
     end     = buf + buflen;
     OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
 
+    ret = os_snprintf(pos, end - pos, "ifname=%s\r\n", wpa_s->ifname);
+    if (os_snprintf_error(end - pos, ret))
+        goto out;
+    pos += ret;
+
     if (wpa_s->wpa_state >= WPA_ASSOCIATED)
     {
         struct wpa_ssid *ssid = wpa_s->current_ssid;
