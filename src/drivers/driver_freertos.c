@@ -257,7 +257,7 @@ void wpa_drv_freertos_event_proc_assoc_resp(struct freertos_drv_if_ctx *if_ctx,
     {
         if_ctx->associated = true;
 
-        os_memcpy(if_ctx->bssid, event->assoc_info.addr, ETH_ALEN); 
+        os_memcpy(if_ctx->bssid, event->assoc_info.addr, ETH_ALEN);
         wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_ASSOC, event);
     }
 }
@@ -1566,6 +1566,21 @@ static void wpa_drv_freertos_send_action_cancel_wait(void *priv)
     }
 
     if_ctx = priv;
+
+#if CONFIG_WPA_SUPP_P2P
+    wpa_s = if_ctx->supp_if_ctx;
+    if (!wpa_s)
+    {
+        wpa_printf(MSG_ERROR, "%s: Invalid wpa_supplicant handle", __func__);
+        return;
+    }
+    if (os_strncmp(wpa_s->ifname, "wf", 2) == 0)
+    {
+        wpa_drv_freertos_cancel_remain_on_channel(priv);
+        return;
+    }
+#endif
+
     if (if_ctx->is_ap)
     {
         hapd = if_ctx->hapd;
@@ -2814,7 +2829,7 @@ static struct hostapd_hw_modes *wpa_drv_freertos_get_hw_feature_data(void *if_pr
     modes[1].rates[9]  = 360;
     modes[1].rates[10] = 480;
     modes[1].rates[11] = 540;
- 
+
 #if CONFIG_5GHz_SUPPORT
     //.3
     if (support_5G)
