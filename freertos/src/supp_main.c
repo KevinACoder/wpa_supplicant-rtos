@@ -106,7 +106,11 @@ K_EVENT_DEFINE(suppMainTaskEvent);
 
 #else
 
+#ifdef CONFIG_P2P
+#define CONFIG_SUPP_MAIN_THREAD_STACK_SIZE 7168
+#else
 #define CONFIG_SUPP_MAIN_THREAD_STACK_SIZE 6144
+#endif
 
 static sys_mbox_t event_queue;
 
