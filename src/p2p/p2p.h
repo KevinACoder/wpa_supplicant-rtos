@@ -1768,6 +1768,8 @@ void p2p_listen_cb(struct p2p_data *p2p, unsigned int freq, unsigned int duratio
  */
 int p2p_listen_end(struct p2p_data *p2p, unsigned int freq);
 
+void p2p_listen_failed(struct p2p_data *p2p, unsigned int freq);
+
 void p2p_deauth_notif(struct p2p_data *p2p, const u8 *bssid, u16 reason_code, const u8 *ie, size_t ie_len);
 
 void p2p_disassoc_notif(struct p2p_data *p2p, const u8 *bssid, u16 reason_code, const u8 *ie, size_t ie_len);

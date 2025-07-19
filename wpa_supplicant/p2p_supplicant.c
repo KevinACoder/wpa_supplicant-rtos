@@ -2538,7 +2538,7 @@ static void wpas_start_listen_cb(struct wpa_radio_work *work, int deinit)
 
     if (deinit)
     {
-        if (work->started)
+        if (work->started && !wpa_s->p2p_removing_listen_work)
         {
             wpa_s->p2p_listen_work = NULL;
             wpas_stop_listen(wpa_s);
@@ -2556,6 +2556,7 @@ static void wpas_start_listen_cb(struct wpa_radio_work *work, int deinit)
         wpa_printf(MSG_DEBUG,
                    "P2P: Failed to request the driver to "
                    "report received Probe Request frames");
+        p2p_listen_failed(wpa_s->global->p2p, lwork->freq);
         wpas_p2p_listen_work_done(wpa_s);
         return;
     }
@@ -2579,6 +2580,7 @@ static void wpas_start_listen_cb(struct wpa_radio_work *work, int deinit)
                    "to remain on channel (%u MHz) for Listen "
                    "state",
                    lwork->freq);
+        p2p_listen_failed(wpa_s->global->p2p, lwork->freq);
         wpas_p2p_listen_work_done(wpa_s);
         wpa_s->pending_listen_freq = 0;
         return;
@@ -2641,6 +2643,14 @@ static void wpas_stop_listen(void *ctx)
         wpa_drv_probe_req_report(wpa_s, 0);
 
     wpas_p2p_listen_work_done(wpa_s);
+
+    if (!wpa_s->p2p_removing_listen_work && radio_work_pending(wpa_s, "p2p-listen"))
+    {
+        wpa_s->p2p_removing_listen_work = true;
+        wpa_printf(MSG_DEBUG, "P2P: p2p-listen is still pending - remove it");
+        radio_remove_works(wpa_s, "p2p-listen", 0);
+        wpa_s->p2p_removing_listen_work = false;
+    }
 }
 
 static int wpas_send_probe_resp(void *ctx, const struct wpabuf *buf, unsigned int freq)
@@ -6647,6 +6657,8 @@ static int wpas_start_p2p_client(
     struct wpa_supplicant *wpa_s, struct wpa_ssid *params, int addr_allocated, int freq, int force_scan)
 {
     struct wpa_ssid *ssid;
+    int other_iface_found = 0;
+    struct wpa_supplicant *ifs;
 
     wpa_s = wpas_p2p_get_group_iface(wpa_s, addr_allocated, 0);
     if (wpa_s == NULL)
@@ -6691,6 +6703,26 @@ static int wpas_start_p2p_client(
     wpa_s->p2p_invite_go_freq               = freq;
     wpa_s->p2p_go_group_formation_completed = 0;
     wpa_s->global->p2p_group_formation      = wpa_s;
+
+    /*
+     * Get latest scan results from driver in case cached scan results from
+     * interfaces on the same wiphy allow us to skip the next scan by fast
+     * associating. Also update the scan time to the most recent scan result
+     * fetch time on the same radio so it reflects the actual time the last
+     * scan result event occurred.
+     */
+    wpa_supplicant_update_scan_results(wpa_s);
+    dl_list_for_each(ifs, &wpa_s->radio->ifaces, struct wpa_supplicant, radio_list)
+    {
+        if (ifs == wpa_s)
+            continue;
+        if (!other_iface_found || os_reltime_before(&wpa_s->last_scan, &ifs->last_scan))
+        {
+            other_iface_found     = 1;
+            wpa_s->last_scan.sec  = ifs->last_scan.sec;
+            wpa_s->last_scan.usec = ifs->last_scan.usec;
+        }
+    }
 
     eloop_cancel_timeout(wpas_p2p_group_formation_timeout, wpa_s->p2pdev, NULL);
     eloop_register_timeout(P2P_MAX_INITIAL_CONN_WAIT, 0, wpas_p2p_group_formation_timeout, wpa_s->p2pdev, NULL);
@@ -7071,9 +7103,9 @@ int wpas_p2p_scan_result_text(const u8 *ies, size_t ies_len, char *buf, char *en
     return p2p_scan_result_text(ies, ies_len, buf, end);
 }
 
-static void wpas_p2p_clear_pending_action_tx(struct wpa_supplicant *wpa_s)
+static void wpas_p2p_clear_pending_action_tx(struct wpa_supplicant *wpa_s, bool force)
 {
-    if (!offchannel_pending_action_tx(wpa_s))
+    if (!offchannel_pending_action_tx(wpa_s) && !force)
         return;
 
     if (wpa_s->p2p_send_action_work)
@@ -7083,6 +7115,8 @@ static void wpas_p2p_clear_pending_action_tx(struct wpa_supplicant *wpa_s)
         offchannel_send_action_done(wpa_s);
     }
 
+    if (!offchannel_pending_action_tx(wpa_s))
+        return;
     wpa_printf(MSG_DEBUG,
                "P2P: Drop pending Action TX due to new "
                "operation request");
@@ -7101,7 +7135,7 @@ int wpas_p2p_find(struct wpa_supplicant *wpa_s,
                   int freq,
                   bool include_6ghz)
 {
-    wpas_p2p_clear_pending_action_tx(wpa_s);
+    wpas_p2p_clear_pending_action_tx(wpa_s, false);
     wpa_s->global->p2p_long_listen = 0;
 
     if (wpa_s->global->p2p_disabled || wpa_s->global->p2p == NULL || wpa_s->p2p_in_provisioning)
@@ -7141,7 +7175,7 @@ static void wpas_p2p_scan_res_ignore_search(struct wpa_supplicant *wpa_s, struct
 
 static void wpas_p2p_stop_find_oper(struct wpa_supplicant *wpa_s)
 {
-    wpas_p2p_clear_pending_action_tx(wpa_s);
+    wpas_p2p_clear_pending_action_tx(wpa_s, true);
     wpa_s->global->p2p_long_listen = 0;
     eloop_cancel_timeout(wpas_p2p_long_listen_timeout, wpa_s, NULL);
     eloop_cancel_timeout(wpas_p2p_join_scan, wpa_s, NULL);
@@ -7183,7 +7217,7 @@ int wpas_p2p_listen(struct wpa_supplicant *wpa_s, unsigned int timeout)
     }
 
     wpa_supplicant_cancel_sched_scan(wpa_s);
-    wpas_p2p_clear_pending_action_tx(wpa_s);
+    wpas_p2p_clear_pending_action_tx(wpa_s, false);
 
     if (timeout == 0)
     {
@@ -8210,6 +8244,12 @@ int wpas_p2p_in_progress(struct wpa_supplicant *wpa_s)
                     "in group formation",
                     wpa_s->global->p2p_group_formation->ifname);
             ret = 1;
+        }
+        else if (wpa_s->global->p2p_group_formation == wpa_s)
+        {
+            wpa_dbg(wpa_s, MSG_DEBUG,
+                    "P2P: Skip Extended Listen timeout and allow scans on current interface for group formation");
+            ret = 2;
         }
     }
 
