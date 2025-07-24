@@ -1912,7 +1912,10 @@ int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
             ssid->bssid_set = 1;
         }
 
-        ssid->disabled = 1;
+        if (network->priority_specific)
+        {
+            ssid->priority = network->priority;
+        }
         ssid->key_mgmt = network->security.key_mgmt;
         ssid->scan_ssid = 1;
         //ssid->proactive_key_caching = network->security.pkc;
@@ -2599,9 +2602,16 @@ int wpa_supp_connect(const struct netif *dev, struct wlan_network *network)
     wpa_s->scan_min_time.sec  = 0;
     wpa_s->scan_min_time.usec = 0;
 
-    //wpa_supplicant_enable_network(wpa_s, ssid);
-
-    wpa_supplicant_select_network(wpa_s, ssid);
+    if (network->select_policy == WLAN_SELECT_POLICY_AUTO)
+    {
+        network->select_policy = 0;
+        wpa_supplicant_enable_network(wpa_s, NULL);
+        wpa_supplicant_select_network(wpa_s, NULL);
+    }
+    else
+    {
+        wpa_supplicant_select_network(wpa_s, ssid);
+    }
 
     send_wpa_supplicant_dummy_event();
 
