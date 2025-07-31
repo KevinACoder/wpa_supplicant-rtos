@@ -43,7 +43,7 @@ enum requested_ops
 #define RRM_EVENT_NEIGHBOR_REP_COMPLETED "neighbor report parse completed"
 #endif
 
-int wpa_supp_init(void (*msg_cb)(const char *txt, size_t len));
+int wpa_supp_init(void (*msg_cb)(void *ctx, const char *txt, size_t len));
 
 int wpa_supp_status(const struct netif *dev);
 

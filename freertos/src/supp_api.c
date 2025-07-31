@@ -6865,14 +6865,14 @@ int wpa_supp_set_mac_acl(const struct netif *dev, int filter_mode, char mac_coun
 }
 #endif /* CONFIG_HOSTAPD */
 
-static void (*msg_cb_ptr)(const char *txt, size_t len);
+static void (*msg_cb_ptr)(void *ctx, const char *txt, size_t len);
 
 static void wpa_supplicant_msg_cb(void *ctx, int level, enum wpa_msg_type type, const char *txt, size_t len)
 {
-    msg_cb_ptr(txt, len);
+    msg_cb_ptr(ctx, txt, len);
 }
 
-int wpa_supp_init(void (*msg_cb)(const char *txt, size_t len))
+int wpa_supp_init(void (*msg_cb)(void *ctx, const char *txt, size_t len))
 {
     osa_status_t status;
 
