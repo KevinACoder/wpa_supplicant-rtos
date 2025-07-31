@@ -764,14 +764,15 @@ static void supplicant_main_task(osa_task_param_t arg)
 #ifdef CONFIG_P2P
         if (strstr(wpa_s->ifname, "wf") != NULL)
         {
-            wpa_s->conf->device_name = os_strdup("NXP device");
-            wpa_s->conf->config_methods = os_strdup("keypad push_button virtual_display");
+            wpa_s->conf->device_name          = os_strdup("NXP device");
+            wpa_s->conf->config_methods       = os_strdup("keypad push_button virtual_display");
+            wpa_s->conf->persistent_reconnect = 1;
             wpa_s->conf->changed_parameters |= (CFG_CHANGED_DEVICE_NAME | CFG_CHANGED_CONFIG_METHODS);
             wpa_supplicant_update_config(wpa_s);
         }
 #endif
     }
- 
+
 #if CONFIG_MATCH_IFACE
     if (exitcode == 0)
     {
@@ -1408,7 +1409,7 @@ struct hostapd_config *hostapd_config_read2(const char *fname)
     bss->eap_sim_db          = os_strdup("unix:/tmp/hlr_auc_gw.sock");
 #if defined(RW610) || defined(IW610)
     os_memcpy(conf->country, "US ", 3);
-#else	
+#else
     (void)os_memcpy(conf->country, "WW ", 3);
 #endif
     conf->hw_mode        = HOSTAPD_MODE_IEEE80211G;
