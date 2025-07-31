@@ -2,9 +2,11 @@
  *
  *  @brief  This file provides wpa supplicant init APIs.
  *
+ *  Copyright (c) 2002-2022, Jouni Malinen <j@w1.fi>
  *  Copyright 2023 NXP
  *
- *  SPDX-License-Identifier: BSD-3-Clause
+ *  This software may be distributed under the terms of the BSD license.
+ *  See README for more details.
  *
  */
 
