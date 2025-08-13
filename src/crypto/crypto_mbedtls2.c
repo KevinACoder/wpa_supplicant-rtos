@@ -2685,6 +2685,7 @@ struct wpabuf *crypto_ecdh_set_peerkey(struct crypto_ecdh *ecdh, int inc_y, cons
         {          /* (inc_y == 0) */
             if(len > 0)
             {
+                // coverity[underflow:SUPPRESS]
                 --len; /*(repurpose len to prime_len)*/
             }
             else
@@ -2703,6 +2704,7 @@ struct wpabuf *crypto_ecdh_set_peerkey(struct crypto_ecdh *ecdh, int inc_y, cons
             buf[1] = 0x04;
             mbedtls_mpi bn;
             mbedtls_mpi_init(&bn);
+            // coverity[overflow_sink:SUPPRESS]
             int ret = mbedtls_mpi_read_binary(&bn, key + 1, len) ||
                       crypto_mbedtls_short_weierstrass_derive_y(grp, &bn, key[0] & 1) ||
                       mbedtls_mpi_write_binary(&bn, buf + 2 + len, len);
