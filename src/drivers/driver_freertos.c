@@ -318,11 +318,6 @@ static void wpa_drv_freertos_event_mgmt_tx_status(struct freertos_drv_if_ctx *if
     if (if_ctx->hapd)
         hostapd_event_wrapper(if_ctx->hapd, EVENT_TX_STATUS, &event);
     else
-#if CONFIG_WPA_SUPP_P2P
-    if (wpa_s->ap_iface)
-        hostapd_event_wrapper(wpa_s->ap_iface->bss[0], EVENT_TX_STATUS, &event);
-    else
-#endif
 #endif
         wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_TX_STATUS, &event);
 
@@ -1705,11 +1700,6 @@ static void wpa_drv_freertos_event_proc_mgmt_rx(struct freertos_drv_if_ctx *if_c
     if (if_ctx->hapd)
         hostapd_event_wrapper(if_ctx->hapd, EVENT_RX_MGMT, event);
     else
-#if CONFIG_WPA_SUPP_P2P
-    if (wpa_s->ap_iface)
-        hostapd_event_wrapper(wpa_s->ap_iface->bss[0], EVENT_RX_MGMT, event);
-    else
-#endif
 #endif
         wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_RX_MGMT, event);
 }
@@ -1721,11 +1711,6 @@ static void wpa_drv_freertos_event_proc_eapol_rx(struct freertos_drv_if_ctx *if_
     if (if_ctx->hapd)
         hostapd_event_wrapper(if_ctx->hapd, EVENT_EAPOL_RX, event);
     else
-#if CONFIG_WPA_SUPP_P2P
-    if (wpa_s->ap_iface)
-        hostapd_event_wrapper(wpa_s->ap_iface->bss[0], EVENT_EAPOL_RX, event);
-    else
-#endif
 #endif
         wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_EAPOL_RX, event);
 }
