@@ -3691,6 +3691,9 @@ int wpa_supp_send_btm_query(const struct netif *dev, int query_reason)
         goto out;
     }
 
+    /* Flush all unused BSS entries */
+    wpa_bss_flush(wpa_s);
+
     ret = wnm_send_bss_transition_mgmt_query(wpa_s, query_reason, NULL, 0);
 
 out:
