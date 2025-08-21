@@ -89,8 +89,7 @@ int os_get_time(struct os_time *t)
     msecs = TICKS_TO_MSEC(ullTickCount);
 
     t->sec = msecs / OS_MSEC_OF_SEC;
-    // t->usec = (msecs % OS_MSEC_OF_SEC) * OS_MSEC_OF_SEC;
-    t->usec = 0;
+    t->usec = (msecs % OS_MSEC_OF_SEC) * OS_MSEC_OF_SEC;
     return 0;
 }
 
