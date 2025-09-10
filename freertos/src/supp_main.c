@@ -619,7 +619,9 @@ static void supplicant_main_task(osa_task_param_t arg)
 #endif
 
     (void)os_memset(&params, 0, sizeof(params));
-#if CONFIG_WPA_SUPP_DPP || CONFIG_WPA_SUPP_P2P
+#if CONFIG_WPA_SUPP_NAN_USD
+    params.wpa_debug_level = MSG_ERROR;
+#elif CONFIG_WPA_SUPP_DPP || CONFIG_WPA_SUPP_P2P
     params.wpa_debug_level = MSG_INFO;
 #else
     params.wpa_debug_level = CONFIG_WPA_SUPP_DEBUG_LEVEL;
