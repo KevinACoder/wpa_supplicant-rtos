@@ -340,9 +340,19 @@ static void wpa_drv_freertos_event_proc_unprot_disassoc(struct freertos_drv_if_c
 }
 
 void wpa_drv_freertos_event_proc_remain_on_channel(struct freertos_drv_if_ctx *if_ctx,
-                                                   int cancel_event,
+                                                   int cancel_event, u64 cookie,
                                                    union wpa_event_data *event)
 {
+    if (cookie != if_ctx->remain_on_chan_cookie)
+    {
+        return;
+    }
+
+    if (cancel_event != 0)
+    {
+        if_ctx->pending_remain_on_chan = false;
+    }
+
     wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx,
                                  cancel_event ? EVENT_CANCEL_REMAIN_ON_CHANNEL : EVENT_REMAIN_ON_CHANNEL, event);
 }
@@ -1601,7 +1611,7 @@ static int wpa_drv_freertos_remain_on_channel(void *priv, unsigned int freq, uns
 {
     struct freertos_drv_if_ctx *if_ctx              = NULL;
     const struct freertos_wpa_supp_dev_ops *dev_ops = NULL;
-    int ret                                         = -1;
+    int ret = -1;
 
     if (!priv)
     {
@@ -1615,12 +1625,13 @@ static int wpa_drv_freertos_remain_on_channel(void *priv, unsigned int freq, uns
 
     if (dev_ops && dev_ops->remain_on_channel)
     {
-        ret = dev_ops->remain_on_channel(if_ctx->dev_priv, freq, duration);
+        ret = dev_ops->remain_on_channel(if_ctx->dev_priv, freq, duration, &if_ctx->remain_on_chan_cookie);
         if (ret)
         {
             wpa_printf(MSG_ERROR, "%s: Remain on channel failed: %d", __func__, ret);
             goto out;
         }
+        if_ctx->pending_remain_on_chan = true;
     }
     else
     {
@@ -1636,7 +1647,7 @@ static int wpa_drv_freertos_cancel_remain_on_channel(void *priv)
 {
     struct freertos_drv_if_ctx *if_ctx              = NULL;
     const struct freertos_wpa_supp_dev_ops *dev_ops = NULL;
-    int ret                                         = -1;
+    int ret = -1;
 
     if (!priv)
     {
@@ -1645,6 +1656,12 @@ static int wpa_drv_freertos_cancel_remain_on_channel(void *priv)
     }
 
     if_ctx = priv;
+
+    if (if_ctx->pending_remain_on_chan == false)
+    {
+        wpa_printf(MSG_DEBUG, "%s: No pending remain on channel to cancel", __func__);
+        goto out;
+    }
 
     dev_ops = (struct freertos_wpa_supp_dev_ops *)if_ctx->dev_ops;
 
@@ -1656,6 +1673,7 @@ static int wpa_drv_freertos_cancel_remain_on_channel(void *priv)
             wpa_printf(MSG_ERROR, "%s: Cancel Remain on channel failed: %d", __func__, ret);
             goto out;
         }
+        if_ctx->pending_remain_on_chan = false;
     }
     else
     {

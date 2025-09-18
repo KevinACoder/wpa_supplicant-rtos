@@ -63,6 +63,9 @@ struct freertos_drv_if_ctx
     unsigned char prev_bssid[6];
     unsigned char auth_bssid[6];
     unsigned char auth_attempt_bssid[6];
+
+    u64 remain_on_chan_cookie;
+    bool pending_remain_on_chan;
 };
 
 struct freertos_wpa_supp_dev_callbk_fns
@@ -93,7 +96,7 @@ struct freertos_wpa_supp_dev_callbk_fns
 
     void (*unprot_disassoc)(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event);
 
-    void (*remain_on_channel)(struct freertos_drv_if_ctx *if_ctx, int cancel_event, union wpa_event_data *event);
+    void (*remain_on_channel)(struct freertos_drv_if_ctx *if_ctx, int cancel_event, u64 cookie, union wpa_event_data *event);
 
     void (*mgmt_rx)(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event);
 
@@ -176,7 +179,10 @@ struct freertos_wpa_supp_dev_ops
                      int offchanok,
                      unsigned int wait_time,
                      int cookie);
-    int (*remain_on_channel)(void *priv, unsigned int freq, unsigned int duration);
+    int (*remain_on_channel)(void *if_priv,
+                             unsigned int freq,
+                             unsigned int duration,
+                             u64 *cookie);
     int (*cancel_remain_on_channel)(void *priv);
     int (*probe_req_report)(void *priv, int report);
     void *(*hapd_init)(void *hapd_drv_if_ctx,
