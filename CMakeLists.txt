@@ -19,6 +19,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
                 port/mbedtls/wpa_supp_ele_s400_mbedtls_config.h
                 port/mbedtls/supp_crypto.c
                 port/mbedtls/supp_crypto.h
+                port/mbedtls/supp_psa_api.c
+                port/mbedtls/supp_psa_api.h
                 src/common/wpa_common.c
                 src/common/ieee802_11_common.c
                 src/common/hw_features_common.c

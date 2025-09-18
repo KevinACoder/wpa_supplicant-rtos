@@ -12,7 +12,7 @@
 #define SUPP_PSA_API_H
 
 #include "includes.h"
-#include "common.h"
+#include "utils/common.h"
 
 #include "psa/crypto.h"
 #include "mbedtls/md.h"

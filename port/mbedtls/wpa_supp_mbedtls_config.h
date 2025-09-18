@@ -25,8 +25,8 @@
  *  limitations under the License.
  */
 
-#ifndef KSDK_MBEDTLS_CONFIG_H
-#define KSDK_MBEDTLS_CONFIG_H
+#ifndef MBEDTLS_USER_CONFIG_H
+#define MBEDTLS_USER_CONFIG_H
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -54,327 +54,19 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #endif /* USE_RTOS*/
 #endif /* __ZEPHYR__ */
 
-#undef FSL_FEATURE_SOC_DCP_COUNT
-
-/* Enable LTC use in library if there is LTC on chip. */
-#if defined(FSL_FEATURE_SOC_LTC_COUNT) && (FSL_FEATURE_SOC_LTC_COUNT > 0)
-#include "fsl_ltc.h"
-
-#define LTC_INSTANCE LTC0 /* LTC base register.*/
-
-#if FSL_FEATURE_LTC_HAS_SHA
-#define MBEDTLS_FREESCALE_LTC_SHA1   /* Enable use of LTC SHA.*/
-#define MBEDTLS_FREESCALE_LTC_SHA256 /* Enable use of LTC SHA256.*/
-#endif
-#if defined(FSL_FEATURE_LTC_HAS_DES) && FSL_FEATURE_LTC_HAS_DES
-#define MBEDTLS_FREESCALE_LTC_DES /* Enable use of LTC DES.*/
-#endif
-#define MBEDTLS_FREESCALE_LTC_AES /* Enable use of LTC AES.*/
-#if defined(FSL_FEATURE_LTC_HAS_GCM) && FSL_FEATURE_LTC_HAS_GCM
-#define MBEDTLS_FREESCALE_LTC_AES_GCM /* Enable use of LTC AES GCM.*/
-#endif
-#if defined(FSL_FEATURE_LTC_HAS_PKHA) && FSL_FEATURE_LTC_HAS_PKHA
-#define MBEDTLS_FREESCALE_LTC_PKHA /* Enable use of LTC PKHA.*/
-#define FREESCALE_PKHA_INT_MAX_BYTES 256
-#endif
+#ifdef CONFIG_WPA_SUPP_CRYPTO_MBEDTLS_PSA
+#define MBEDTLS_CTR_DRBG_ENABLED
+#define MBEDTLS_CIPHER_AES_ENABLED
+#define MBEDTLS_CIPHER_MODE_CBC_ENABLED
+#define MBEDTLS_CIPHER_PADDING_PKCS7
+#define PSA_WANT_ALG_ECDSA 1
+#define PSA_WANT_ALG_ECDSA_ANY 1
+#define PSA_WANT_ALG_RSA_PKCS1V15_SIGN 1
+#define PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW 1
 #endif
 
-/* Enable MMCAU use in library if there is MMCAU on chip. */
-#if defined(FSL_FEATURE_SOC_MMCAU_COUNT) && (FSL_FEATURE_SOC_MMCAU_COUNT > 0)
-#include "fsl_mmcau.h"
-
-#define MBEDTLS_FREESCALE_MMCAU_MD5    /* Enable use of MMCAU MD5.*/
-#define MBEDTLS_FREESCALE_MMCAU_SHA1   /* Enable use of MMCAU SHA1.*/
-#define MBEDTLS_FREESCALE_MMCAU_SHA256 /* Enable use of MMCAU SHA256.*/
-#define MBEDTLS_FREESCALE_MMCAU_DES    /* Enable use of MMCAU DES, when LTC is disabled.*/
-#define MBEDTLS_FREESCALE_MMCAU_AES    /* Enable use of MMCAU AES, when LTC is disabled.*/
-#endif
-
-/* Enable CAU3 use in library if there is CAU3 on chip. */
-#if defined(FSL_FEATURE_SOC_CAU3_COUNT) && (FSL_FEATURE_SOC_CAU3_COUNT > 0)
-#include "fsl_cau3.h"
-
-#define MBEDTLS_CAU3_COMPLETION_SIGNAL kCAU3_TaskDonePoll
-
-#define MBEDTLS_FREESCALE_CAU3_AES    /* Enable use of CAU3 AES.*/
-#define MBEDTLS_FREESCALE_CAU3_DES    /* Enable use of CAU3 DES.*/
-#define MBEDTLS_FREESCALE_CAU3_SHA1   /* Enable use of CAU3 SHA1.*/
-#define MBEDTLS_FREESCALE_CAU3_SHA256 /* Enable use of CAU3 SHA256.*/
-#define MBEDTLS_FREESCALE_CAU3_PKHA   /* Enable use of CAU3 PKHA.*/
-#define FREESCALE_PKHA_INT_MAX_BYTES 512
-
-#define MBEDTLS_FREESCALE_CAU3_CIPHER_CMAC
-#endif
-
-/* Enable CAAM use in library if there is CAAM on chip. */
-#if defined(FSL_FEATURE_SOC_CAAM_COUNT) && (FSL_FEATURE_SOC_CAAM_COUNT > 0) && defined(CRYPTO_USE_DRIVER_CAAM)
-#include "fsl_caam.h"
-
-#define CAAM_INSTANCE CAAM
-
-#define MBEDTLS_FREESCALE_CAAM_AES     /* Enable use of CAAM AES.*/
-#define MBEDTLS_FREESCALE_CAAM_AES_GCM /* Enable use of CAAM AES GCM.*/
-
-#define MBEDTLS_FREESCALE_CAAM_DES /* Enable use of CAAM DES.*/
-
-#define MBEDTLS_FREESCALE_CAAM_SHA1   /* Enable use of CAAM SHA1.*/
-#define MBEDTLS_FREESCALE_CAAM_SHA256 /* Enable use of CAAM SHA256.*/
-
-#define MBEDTLS_FREESCALE_CAAM_PKHA /* Enable use of CAAM PKHA.*/
-#define FREESCALE_PKHA_INT_MAX_BYTES 512
-#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP256R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
-#endif
-
-/* Enable DCP use in library if there is DCP on chip. */
-#if defined(FSL_FEATURE_SOC_DCP_COUNT) && (FSL_FEATURE_SOC_DCP_COUNT > 0)
-#include "fsl_dcp.h"
-
-//#define MBEDTLS_FREESCALE_DCP_AES    /* Enable use of DCP AES.*/
-#define MBEDTLS_FREESCALE_DCP_SHA1   /* Enable use of DCP SHA1.*/
-#define MBEDTLS_FREESCALE_DCP_SHA256 /* Enable use of DCP SHA256.*/
-
-#endif
-
-/* Enable HASHCRYPT use in library if there is HASHCRYPT on chip. */
-#if defined(FSL_FEATURE_SOC_HASHCRYPT_COUNT) && (FSL_FEATURE_SOC_HASHCRYPT_COUNT > 0)
-#include "fsl_hashcrypt.h"
-
-#define MBEDTLS_FREESCALE_HASHCRYPT_AES    /* Enable use of HASHCRYPT AES.*/
-#define MBEDTLS_CCM_ALT                    /* Enable use of HASHCRYPT AES CCM .*/
-/* Hashcrypt without context switch is not able to calculate SHA in parallel with AES.
- * HW acceleration of SHA is disabled by default in MbedTLS integration.
- * HW acceleration of SHA is enabled on chip with context switch.
- */
-#if defined(FSL_FEATURE_HASHCRYPT_HAS_RELOAD_FEATURE)
-//#define MBEDTLS_FREESCALE_HASHCRYPT_SHA1   /* Enable use of HASHCRYPT SHA1.*/
-//#define MBEDTLS_FREESCALE_HASHCRYPT_SHA256 /* Enable use of HASHCRYPT SHA256.*/
-#endif
-#endif
-
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
-/*
- * This FREESCALE_PKHA_LONG_OPERANDS_ENABLE macro can be defined.
- * In such a case both software and hardware algorithm for TFM is linked in.
- * The decision for which algorithm is used is determined at runtime
- * from size of inputs. If inputs and result can fit into FREESCALE_PKHA_INT_MAX_BYTES
- * then we call hardware algorithm, otherwise we call software algorithm.
- *
- * Note that mbedTLS algorithms break modular operations unefficiently into two steps.
- * First is normal operation, for example non-modular multiply, which can produce number
- * with greater size than operands. Second is modular reduction.
- * The implication of this is that if for example FREESCALE_PKHA_INT_MAX_BYTES is 256 (2048 bits),
- * RSA-2048 still requires the FREESCALE_PKHA_LONG_OPERANDS_ENABLE macro to be defined,
- * otherwise it fails at runtime.
- */
-#define FREESCALE_PKHA_LONG_OPERANDS_ENABLE
-#endif
-
-/* Enable AES use in library if there is AES on chip. */
-#if defined(FSL_FEATURE_SOC_AES_COUNT) && (FSL_FEATURE_SOC_AES_COUNT > 0)
-#include "fsl_aes.h"
-
-#define AES_INSTANCE AES0             /* AES base register.*/
-#define MBEDTLS_FREESCALE_LPC_AES     /* Enable use of LPC AES.*/
-#define MBEDTLS_FREESCALE_LPC_AES_GCM /* Enable use of LPC AES GCM.*/
-
-#endif
-
-/* Enable SHA use in library if there is SHA on chip. */
-#if defined(FSL_FEATURE_SOC_SHA_COUNT) && (FSL_FEATURE_SOC_SHA_COUNT > 0)
-#include "fsl_sha.h"
-
-/* SHA HW accelerator does not support to compute multiple interleaved hashes,
- * it doesn't support context switch.
- * HW acceleration of SHA is disabled by default in MbedTLS integration.
- */
-#define SHA_INSTANCE SHA0            /* SHA base register.*/
-#define MBEDTLS_FREESCALE_LPC_SHA1   /* Enable use of LPC SHA.*/
-#define MBEDTLS_FREESCALE_LPC_SHA256 /* Enable use of LPC SHA256.*/
-#endif
-
-/* Enable CASPER use in library if there is CASPER on chip. */
-#if defined(FSL_FEATURE_SOC_CASPER_COUNT) && (FSL_FEATURE_SOC_CASPER_COUNT > 0)
-#include "fsl_casper.h"
-
-#define CASPER_INSTANCE CASPER        /* CASPER base register.*/
-//#define MBEDTLS_FREESCALE_CASPER_PKHA /* Enable use of CASPER PKHA.*/
-//#define FREESCALE_PKHA_INT_MAX_BYTES (512)
-//
-//#define MBEDTLS_ECP_MUL_COMB_ALT /* Alternate implementation of ecp_mul_comb() */
-//#define MBEDTLS_ECP_MULADD_ALT /* Alternate implementation of mbedtls_ecp_muladd() */
-//#define MBEDTLS_MCUX_CASPER_ECC /* CASPER implementation */
-//
-//#define MBEDTLS_ECP_DP_SECP256R1_ENABLED /* Enable ECP_DP_SECP256R1 curve */
-//#define MBEDTLS_ECP_DP_SECP384R1_ENABLED /* Enable ECP_DP_SECP384R1 curve */
-//#define MBEDTLS_ECP_DP_SECP521R1_ENABLED /* Enable ECP_DP_SECP521R1 curve */
-
-#endif
-
-/**
- * \def MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
- *
- * Enable implementation for FreeRTOS's pvPortCalloc() in ksdk_mbedtls.c module.
- * You can comment this macro if you provide your own alternate implementation.
- *
- */
-#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS) && !defined(SD9177)
-#define MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
-#endif
-
-/* Define ALT functions. */
-#define MBEDTLS_ECP_ALT
-
-#if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
-#define MBEDTLS_DES_ALT
-#define MBEDTLS_DES3_SETKEY_ENC_ALT
-#define MBEDTLS_DES3_SETKEY_DEC_ALT
-#define MBEDTLS_DES3_CRYPT_ECB_ALT
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
-#define MBEDTLS_DES_SETKEY_ENC_ALT
-#define MBEDTLS_DES_SETKEY_DEC_ALT
-#define MBEDTLS_DES_CRYPT_ECB_ALT
-#endif
-#endif
-#if defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES)
-#define MBEDTLS_DES_CRYPT_CBC_ALT
-#define MBEDTLS_DES3_CRYPT_CBC_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_CAU3_AES) || defined(MBEDTLS_FREESCALE_DCP_AES)
-#define MBEDTLS_AES_ALT
-#define MBEDTLS_AES_SETKEY_ENC_ALT
-#define MBEDTLS_AES_SETKEY_DEC_ALT
-#define MBEDTLS_AES_ENCRYPT_ALT
-#define MBEDTLS_AES_DECRYPT_ALT
-#define MBEDTLS_AES_ALT_NO_192
-#endif
-#if defined(MBEDTLS_FREESCALE_DCP_AES)
-#define MBEDTLS_AES_CRYPT_CBC_ALT
-#define MBEDTLS_AES_ALT_NO_256
-#define MBEDTLS_AES192_ALT_SW
-#define MBEDTLS_AES256_ALT_SW
-#define MBEDTLS_AES_CBC_ALT_SW
-#endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
-    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES) || \
-    defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-#define MBEDTLS_AES_ALT
-#define MBEDTLS_AES_SETKEY_ENC_ALT
-#define MBEDTLS_AES_SETKEY_DEC_ALT
-#define MBEDTLS_AES_ENCRYPT_ALT
-#define MBEDTLS_AES_DECRYPT_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
-#define MBEDTLS_AES_CRYPT_CBC_ALT
-#define MBEDTLS_AES_CRYPT_CTR_ALT
-#define MBEDTLS_CCM_CRYPT_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES_GCM) || defined(MBEDTLS_FREESCALE_LPC_AES_GCM) || \
-    defined(MBEDTLS_FREESCALE_CAAM_AES_GCM)
-#define MBEDTLS_GCM_CRYPT_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
-#define MBEDTLS_MPI_ADD_ABS_ALT
-#define MBEDTLS_MPI_SUB_ABS_ALT
-#define MBEDTLS_MPI_MUL_MPI_ALT
-#define MBEDTLS_MPI_MOD_MPI_ALT
-#define MBEDTLS_MPI_EXP_MOD_ALT
-#define MBEDTLS_MPI_GCD_ALT
-#define MBEDTLS_MPI_INV_MOD_ALT
-#define MBEDTLS_MPI_IS_PRIME_ALT
-#define MBEDTLS_ECP_MUL_COMB_ALT
-#define MBEDTLS_ECP_ADD_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_CAU3_PKHA)
-#define MBEDTLS_ECP_MUL_MXZ_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_CASPER_PKHA)
-#define MBEDTLS_RSA_PUBLIC_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1) || \
-    defined(MBEDTLS_FREESCALE_CAAM_SHA1) || defined(MBEDTLS_FREESCALE_CAU3_SHA1) || defined(MBEDTLS_FREESCALE_DCP_SHA1) || \
-    defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1)
-#define MBEDTLS_SHA1_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_LTC_SHA256) || defined(MBEDTLS_FREESCALE_LPC_SHA256) || \
-    defined(MBEDTLS_FREESCALE_CAAM_SHA256) || defined(MBEDTLS_FREESCALE_CAU3_SHA256) || defined(MBEDTLS_FREESCALE_DCP_SHA256) || \
-    defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
-#define MBEDTLS_SHA256_ALT
-/*
- * LPC SHA module does not support SHA-224.
- *
- * Since mbed TLS does not provide separate APIs for SHA-224 and SHA-256
- * and SHA-224 is not widely used, this implementation provides HW accelerated SHA-256 only
- * and SHA-224 is not available at all (calls will fail).
- *
- * To use SHA-224 on LPC, do not define MBEDTLS_SHA256_ALT and both SHA-224 and SHA-256 will use
- * original mbed TLS software implementation.
- */
-#if defined(MBEDTLS_FREESCALE_LPC_SHA256) || defined(MBEDTLS_FREESCALE_DCP_SHA256) || defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
-#define MBEDTLS_SHA256_ALT_NO_224
-#endif
-#endif
-#if defined(MBEDTLS_FREESCALE_MMCAU_MD5)
-#define MBEDTLS_MD5_PROCESS_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_MMCAU_SHA1)
-#define MBEDTLS_SHA1_PROCESS_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_MMCAU_SHA256)
-#define MBEDTLS_SHA256_PROCESS_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_CAU3_SHA1)
-#define MBEDTLS_SHA1_PROCESS_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_CAU3_SHA256)
-#define MBEDTLS_SHA256_ALT_NO_224
-#define MBEDTLS_SHA256_PROCESS_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_CAU3_CIPHER_CMAC)
-#define MBEDTLS_CIPHER_CMAC_ALT
-
-/* this macros can be used to enable or disable AES-CMAC-256 and/or TDES-CMAC with CMAC_ALT hw acceleration */
-#define MBEDTLS_CIPHER_CMAC_AES_256_ENABLED
-#define MBEDTLS_CIPHER_CMAC_TDES_ENABLED
-#endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES)
-#if !defined(FSL_FEATURE_LTC_HAS_AES192) || !FSL_FEATURE_LTC_HAS_AES192
-#define MBEDTLS_AES_ALT_NO_192
-#endif
-#if !defined(FSL_FEATURE_LTC_HAS_AES256) || !FSL_FEATURE_LTC_HAS_AES256
-#define MBEDTLS_AES_ALT_NO_256
-#endif
-#endif
-#if defined(MBEDTLS_FREESCALE_LPC_AES)
-#define MBEDTLS_AES_CRYPT_CBC_ALT
-#define MBEDTLS_AES_CRYPT_CFB_ALT
-#define MBEDTLS_AES_CRYPT_CTR_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_LPC_SHA1)
-#define MBEDTLS_SHA1_PROCESS_ALT
-#endif
-#if defined(MBEDTLS_FREESCALE_LPC_SHA256)
-#define MBEDTLS_SHA256_PROCESS_ALT
-#endif
-
-/* Use SHA-256 HW acceleration for MD COOKIE when SHA-224 mode is not available */
-#ifdef MBEDTLS_SHA256_ALT_NO_224
-#define FSL_MD_COOKIE_USE_SHA256
-#endif
-
-#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS)
-#include "FreeRTOS.h"
-
-void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
-
-#define MBEDTLS_PLATFORM_MEMORY
-#define MBEDTLS_PLATFORM_STD_CALLOC pvPortCalloc
-#define MBEDTLS_PLATFORM_STD_FREE vPortFree
-
-#endif /* USE_RTOS*/
+/* Disable DCP temporarily for hash issue */
+#undef PSA_CRYPTO_DRIVER_DCP
 
 /* Reduce RAM usage.*/
 /* More info: https://tls.mbed.org/kb/how-to/reduce-mbedtls-memory-and-storage-footprint */
@@ -726,106 +418,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *            digests and ciphers instead.
  *
  */
-//#define MBEDTLS_AES_ALT
-//#define MBEDTLS_ARC4_ALT
-//#define MBEDTLS_ARIA_ALT
-//#define MBEDTLS_BLOWFISH_ALT
-//#define MBEDTLS_CAMELLIA_ALT
-//#define MBEDTLS_CCM_ALT
-//#define MBEDTLS_CHACHA20_ALT
-//#define MBEDTLS_CHACHAPOLY_ALT
-//#define MBEDTLS_CMAC_ALT
-//#define MBEDTLS_DES_ALT
-//#define MBEDTLS_DHM_ALT
-//#define MBEDTLS_ECJPAKE_ALT
-//#define MBEDTLS_GCM_ALT
-//#define MBEDTLS_NIST_KW_ALT
-//#define MBEDTLS_MD2_ALT
-//#define MBEDTLS_MD4_ALT
-//#define MBEDTLS_MD5_ALT
-//#define MBEDTLS_POLY1305_ALT
-//#define MBEDTLS_RIPEMD160_ALT
-//#define MBEDTLS_RSA_ALT
-//#define MBEDTLS_SHA1_ALT
-//#define MBEDTLS_SHA256_ALT
-//#define MBEDTLS_SHA512_ALT
-//#define MBEDTLS_XTEA_ALT
-
-/*
- * When replacing the elliptic curve module, pleace consider, that it is
- * implemented with two .c files:
- *      - ecp.c
- *      - ecp_curves.c
- * You can replace them very much like all the other MBEDTLS__MODULE_NAME__ALT
- * macros as described above. The only difference is that you have to make sure
- * that you provide functionality for both .c files.
- */
-//#define MBEDTLS_ECP_ALT
-
-/**
- * \def MBEDTLS_MD2_PROCESS_ALT
- *
- * MBEDTLS__FUNCTION_NAME__ALT: Uncomment a macro to let mbed TLS use you
- * alternate core implementation of symmetric crypto or hash function. Keep in
- * mind that function prototypes should remain the same.
- *
- * This replaces only one function. The header file from mbed TLS is still
- * used, in contrast to the MBEDTLS__MODULE_NAME__ALT flags.
- *
- * Example: In case you uncomment MBEDTLS_SHA256_PROCESS_ALT, mbed TLS will
- * no longer provide the mbedtls_sha1_process() function, but it will still provide
- * the other function (using your mbedtls_sha1_process() function) and the definition
- * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
- * with this definition.
- *
- * \note Because of a signature change, the core AES encryption and decryption routines are
- *       currently named mbedtls_aes_internal_encrypt and mbedtls_aes_internal_decrypt,
- *       respectively. When setting up alternative implementations, these functions should
- *       be overridden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
- *       must stay untouched.
- *
- * \note If you use the AES_xxx_ALT macros, then it is recommended to also set
- *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
- *       tables.
- *
- * Uncomment a macro to enable alternate implementation of the corresponding
- * function.
- *
- * \warning   MD2, MD4, MD5, DES and SHA-1 are considered weak and their use
- *            constitutes a security risk. If possible, we recommend avoiding
- *            dependencies on them, and considering stronger message digests
- *            and ciphers instead.
- *
- * \warning   If both MBEDTLS_ECDSA_SIGN_ALT and MBEDTLS_ECDSA_DETERMINISTIC are
- *            enabled, then the deterministic ECDH signature functions pass the
- *            the static HMAC-DRBG as RNG to mbedtls_ecdsa_sign(). Therefore
- *            alternative implementations should use the RNG only for generating
- *            the ephemeral key and nothing else. If this is not possible, then
- *            MBEDTLS_ECDSA_DETERMINISTIC should be disabled and an alternative
- *            implementation should be provided for mbedtls_ecdsa_sign_det_ext()
- *            (and for mbedtls_ecdsa_sign_det() too if backward compatibility is
- *            desirable).
- *
- */
-//#define MBEDTLS_MD2_PROCESS_ALT
-//#define MBEDTLS_MD4_PROCESS_ALT
-//#define MBEDTLS_MD5_PROCESS_ALT
-//#define MBEDTLS_RIPEMD160_PROCESS_ALT
-//#define MBEDTLS_SHA1_PROCESS_ALT
-//#define MBEDTLS_SHA256_PROCESS_ALT
-//#define MBEDTLS_SHA512_PROCESS_ALT
-//#define MBEDTLS_DES_SETKEY_ALT
-//#define MBEDTLS_DES_CRYPT_ECB_ALT
-//#define MBEDTLS_DES3_CRYPT_ECB_ALT
-//#define MBEDTLS_AES_SETKEY_ENC_ALT
-//#define MBEDTLS_AES_SETKEY_DEC_ALT
-//#define MBEDTLS_AES_ENCRYPT_ALT
-//#define MBEDTLS_AES_DECRYPT_ALT
-//#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
-//#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
-//#define MBEDTLS_ECDSA_VERIFY_ALT
-//#define MBEDTLS_ECDSA_SIGN_ALT
-//#define MBEDTLS_ECDSA_GENKEY_ALT
 
 /**
  * \def MBEDTLS_ECP_INTERNAL_ALT
@@ -910,19 +502,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 //#define MBEDTLS_TEST_NULL_ENTROPY
 
 /**
- * \def MBEDTLS_ENTROPY_HARDWARE_ALT
- *
- * Uncomment this macro to let mbed TLS use your own implementation of a
- * hardware entropy collector.
- *
- * Your function must be called \c mbedtls_hardware_poll(), have the same
- * prototype as declared in entropy_poll.h, and accept NULL as first argument.
- *
- * Uncomment to use your own hardware entropy collector.
- */
-#define MBEDTLS_ENTROPY_HARDWARE_ALT
-
-/**
  * \def MBEDTLS_AES_ROM_TABLES
  *
  * Use precomputed AES tables stored in ROM.
@@ -974,29 +553,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 //#define MBEDTLS_CAMELLIA_SMALL_MEMORY
 
 /**
- * \def MBEDTLS_CHECK_RETURN_WARNING
- *
- * If this macro is defined, emit a compile-time warning if application code
- * calls a function without checking its return value, but the return value
- * should generally be checked in portable applications.
- *
- * This is only supported on platforms where #MBEDTLS_CHECK_RETURN is
- * implemented. Otherwise this option has no effect.
- *
- * Uncomment to get warnings on using fallible functions without checking
- * their return value.
- *
- * \note  This feature is a work in progress.
- *        Warnings will be added to more functions in the future.
- *
- * \note  A few functions are considered critical, and ignoring the return
- *        value of these functions will trigger a warning even if this
- *        macro is not defined. To completely disable return value check
- *        warnings, define #MBEDTLS_CHECK_RETURN with an empty expansion.
- */
-//#define MBEDTLS_CHECK_RETURN_WARNING
-
-/**
  * \def MBEDTLS_CIPHER_MODE_CBC
  *
  * Enable Cipher Block Chaining mode (CBC) for symmetric ciphers.
@@ -1029,7 +585,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * Enable Xor-encrypt-xor with ciphertext stealing mode (XTS) for AES.
  */
-//#define MBEDTLS_CIPHER_MODE_XTS
+#define MBEDTLS_CIPHER_MODE_XTS
 
 /**
  * \def MBEDTLS_CIPHER_NULL_CIPHER
@@ -1147,20 +703,18 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  * Comment macros to disable the curve and functions for it
  */
 /* Short Weierstrass curves (supporting ECP, ECDH, ECDSA) */
-//#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
-//#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-//#ifndef MBEDTLS_FREESCALE_LTC_PKHA /* PKHA suports only <=512 */
 #define MBEDTLS_ECP_DP_SECP521R1_ENABLED
-//#endif
-//#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
-//#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
-//#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
-//#define MBEDTLS_ECP_DP_BP256R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
+#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
+#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
+#define MBEDTLS_ECP_DP_BP256R1_ENABLED
 #define MBEDTLS_ECP_DP_BP384R1_ENABLED
-//#define MBEDTLS_ECP_DP_BP512R1_ENABLED
-/* Montgomery curves (supporting ECP) */
+#define MBEDTLS_ECP_DP_BP512R1_ENABLED
+/* Montgomery curves (supporting ECP), NOT supported by CSS PKC*/
 //#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 //#define MBEDTLS_ECP_DP_CURVE448_ENABLED
 
@@ -1248,7 +802,9 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *       library may modify the way the ECDH context layout is configured
  *       and may modify the layout of the new context type.
  */
-//#define MBEDTLS_ECDH_LEGACY_CONTEXT
+#ifdef MBEDTLS_ECDH_LEGACY_CONTEXT
+#undef MBEDTLS_ECDH_LEGACY_CONTEXT
+#endif
 
 /**
  * \def MBEDTLS_ECDSA_DETERMINISTIC
@@ -1844,7 +1400,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * Enable the checkup functions (*_self_test).
  */
-//#define MBEDTLS_SELF_TEST
+#define MBEDTLS_SELF_TEST
 
 /**
  * \def MBEDTLS_SHA256_SMALLER
@@ -2201,23 +1757,78 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_SSL_PROTO_TLS1_2
 
 /**
- * \def MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+ * \def MBEDTLS_SSL_PROTO_TLS1_3
  *
- * This macro is used to selectively enable experimental parts
- * of the code that contribute to the ongoing development of
- * the prototype TLS 1.3 and DTLS 1.3 implementation, and provide
- * no other purpose.
+ * Enable support for TLS 1.3.
  *
- * \warning TLS 1.3 and DTLS 1.3 aren't yet supported in Mbed TLS,
- *          and no feature exposed through this macro is part of the
- *          public API. In particular, features under the control
- *          of this macro are experimental and don't come with any
- *          stability guarantees.
+ * \note See docs/architecture/tls13-support.md for a description of the TLS
+ *       1.3 support that this option enables.
  *
- * Uncomment this macro to enable experimental and partial
- * functionality specific to TLS 1.3.
+ * Requires: MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ *
+ * \note TLS 1.3 uses PSA crypto for cryptographic operations that are
+ *       directly performed by TLS 1.3 code. As a consequence, when TLS 1.3
+ *       is enabled, a TLS handshake may call psa_crypto_init(), even
+ *       if it ends up negotiating a different TLS version.
+ *
+ * \note Cryptographic operations performed indirectly via another module
+ *       (X.509, PK) or by code shared with TLS 1.2 (record protection,
+ *       running handshake hash) only use PSA crypto if
+ *       #MBEDTLS_USE_PSA_CRYPTO is enabled.
+ *
+ * \note In multithreaded applications, you must also enable
+ *       #MBEDTLS_THREADING_C, even if individual TLS contexts are not
+ *       shared between threads, unless only one thread ever calls
+ *       TLS functions.
+ *
+ * Uncomment this macro to enable the support for TLS 1.3.
  */
-//#define MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+#define MBEDTLS_SSL_PROTO_TLS1_3
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+ *
+ * Enable TLS 1.3 PSK key exchange mode.
+ *
+ * Comment to disable support for the PSK key exchange mode in TLS 1.3. If
+ * MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not have any
+ * effect on the build.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+ *
+ * Enable TLS 1.3 ephemeral key exchange mode.
+ *
+ * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
+ *           MBEDTLS_X509_CRT_PARSE_C
+ *           and at least one of:
+ *               MBEDTLS_ECDSA_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDSA)
+ *               MBEDTLS_PKCS1_V21
+ *
+ * Comment to disable support for the ephemeral key exchange mode in TLS 1.3.
+ * If MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not have any
+ * effect on the build.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+ *
+ * Enable TLS 1.3 PSK ephemeral key exchange mode.
+ *
+ * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
+ *
+ * Comment to disable support for the PSK ephemeral key exchange mode in
+ * TLS 1.3. If MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not
+ * have any effect on the build.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 
 /**
  * \def MBEDTLS_SSL_PROTO_DTLS
@@ -2467,17 +2078,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  * Uncomment to enable invasive tests.
  */
 //#define MBEDTLS_TEST_HOOKS
-
-/**
- * \def MBEDTLS_THREADING_ALT
- *
- * Provide your own alternate threading implementation.
- *
- * Requires: MBEDTLS_THREADING_C
- *
- * Uncomment this to allow your own alternate threading implementation.
- */
-#define MBEDTLS_THREADING_ALT
 
 /**
  * \def MBEDTLS_THREADING_PTHREAD
@@ -2747,34 +2347,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_AES_C
 
 /**
- * \def MBEDTLS_ARC4_C
- *
- * Enable the ARCFOUR stream cipher.
- *
- * Module:  library/arc4.c
- * Caller:  library/cipher.c
- *
- * This module enables the following ciphersuites (if other requisites are
- * enabled as well):
- *      MBEDTLS_TLS_ECDH_ECDSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDH_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDHE_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_ECDHE_PSK_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_DHE_PSK_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_RSA_WITH_RC4_128_MD5
- *      MBEDTLS_TLS_RSA_PSK_WITH_RC4_128_SHA
- *      MBEDTLS_TLS_PSK_WITH_RC4_128_SHA
- *
- * \warning   ARC4 is considered a weak cipher and its use constitutes a
- *            security risk. If possible, we recommend avoidng dependencies on
- *            it, and considering stronger ciphers instead.
- *
- */
-//#define MBEDTLS_ARC4_C
-
-/**
  * \def MBEDTLS_ASN1_PARSE_C
  *
  * Enable the generic ASN1 parser.
@@ -2838,7 +2410,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * Module:  library/blowfish.c
  */
-//#define MBEDTLS_BLOWFISH_C
+#define MBEDTLS_BLOWFISH_C
 
 /**
  * \def MBEDTLS_CAMELLIA_C
@@ -3041,14 +2613,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * This module provides the CTR_DRBG AES random number generator.
  */
-#if !(defined(MBEDTLS_AES_ENCRYPT_ALT) && defined(MBEDTLS_AES_ALT_NO_256))
 #define MBEDTLS_CTR_DRBG_C
-#elif defined(MBEDTLS_AES_ALT_NO_256)
-/* This macros will add support for CTR_DRBG using AES-128 for crypto engines
- * without AES-256 capability.  */
-#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-#define MBEDTLS_CTR_DRBG_C
-#endif
 
 /**
  * \def MBEDTLS_DEBUG_C
@@ -3313,23 +2878,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  */
 //#define MBEDTLS_MD2_C
-
-/**
- * \def MBEDTLS_MD4_C
- *
- * Enable the MD4 hash algorithm.
- *
- * Module:  library/md4.c
- * Caller:
- *
- * Uncomment to enable support for (rare) MD4-signed X.509 certs.
- *
- * \warning   MD4 is considered a weak message digest and its use constitutes a
- *            security risk. If possible, we recommend avoiding dependencies on
- *            it, and considering stronger message digests instead.
- *
- */
-//#define MBEDTLS_MD4_C
 
 /**
  * \def MBEDTLS_MD5_C
@@ -3689,6 +3237,22 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_SHA1_C
 
 /**
+ * \def MBEDTLS_SHA224_C
+ *
+ * Enable the SHA-224 cryptographic hash algorithm.
+ *
+ * Requires: MBEDTLS_SHA256_C. The library does not currently support enabling
+ *           SHA-224 without SHA-256.
+ *
+ * Module:  library/sha256.c
+ * Caller:  library/md.c
+ *          library/ssl_cookie.c
+ *
+ * This module adds support for SHA-224.
+ */
+#define MBEDTLS_SHA224_C
+
+/**
  * \def MBEDTLS_SHA256_C
  *
  * Enable the SHA-224 and SHA-256 cryptographic hash algorithms.
@@ -3703,7 +3267,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  * This module adds support for SHA-224 and SHA-256.
  * This module is required for the SSL/TLS 1.2 PRF function.
  */
-#define MBEDTLS_SHA224_C
 #define MBEDTLS_SHA256_C
 
 /**
@@ -3818,6 +3381,17 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_SSL_TLS_C
 
 /**
+ * \def MBEDTLS_THREADING_ALT
+ *
+ * Provide your own alternate threading implementation.
+ *
+ * Requires: MBEDTLS_THREADING_C
+ *
+ * Uncomment this to allow your own alternate threading implementation.
+ */
+//#define MBEDTLS_THREADING_ALT
+
+/**
  * \def MBEDTLS_THREADING_C
  *
  * Enable the threading abstraction layer.
@@ -3837,7 +3411,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * Enable this layer to allow use of mutexes within mbed TLS
  */
-#define MBEDTLS_THREADING_C
+//#define MBEDTLS_THREADING_C
 
 /**
  * \def MBEDTLS_TIMING_C
@@ -4387,6 +3961,25 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
+/**
+ * \def MBEDTLS_CCM_USE_AES_CBC_MAC
+ *
+ * Uncomment this macro in case CCM should be used with AES CBC-MAC calling CSS IP.
+ *
+ */
+#define MBEDTLS_CCM_USE_AES_CBC_MAC
+
+/**
+ * \def MBEDTLS_CBC_MAC_USE_CMAC
+ *
+ * Uncomment this macro in case AES CBC-MAC should be used with CSS CMAC command.
+ *
+ */
+//#define MBEDTLS_CBC_MAC_USE_CMAC
+
+/* Uncomment if you do not want PSA wrapper inside Mbedtls */
+//#undef MBEDTLS_USE_PSA_CRYPTO
+
 /* \} name SECTION: Customisation configuration options */
 
 /* Target and application specific configurations
@@ -4397,14 +3990,91 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
-#if defined(MBEDTLS_USER_CONFIG_FILE)
-#include MBEDTLS_USER_CONFIG_FILE
-#endif
+#define MBEDTLS_CTR_DRBG_ENABLED
+#define MBEDTLS_CIPHER_AES_ENABLED
+#define MBEDTLS_CIPHER_MODE_CBC_ENABLED
+#define MBEDTLS_CIPHER_PADDING_PKCS7
+#define MBEDTLS_ENTROPY_HARDWARE_ALT
+#undef MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
 
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#include "mbedtls/config_psa.h"
-#endif
+#undef MBEDTLS_PSA_P256M_DRIVER_ENABLED
 
-#include "mbedtls/check_config.h"
+/*
+ * CBC-MAC is not yet supported via the PSA API in Mbed TLS.
+ */
+//#define PSA_WANT_ALG_CBC_MAC                    1
+#define PSA_WANT_ALG_JPAKE                      1
+#define PSA_WANT_ALG_CBC_NO_PADDING             1
+#define PSA_WANT_ALG_CBC_PKCS7                  1
+#define PSA_WANT_ALG_CCM                        1
+#define PSA_WANT_ALG_CMAC                       1
+#define PSA_WANT_ALG_CFB                        1
+//#define PSA_WANT_ALG_CHACHA20_POLY1305          1
+#define PSA_WANT_ALG_CTR                        1
+#define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
+#define PSA_WANT_ALG_ECB_NO_PADDING             1
+#define PSA_WANT_ALG_ECDH                       1
+#define PSA_WANT_ALG_ECDSA                      1
+#define PSA_WANT_ALG_GCM                        1
+#define PSA_WANT_ALG_HKDF                       1
+#define PSA_WANT_ALG_HMAC                       1
+#define PSA_WANT_ALG_MD5                        1
+#define PSA_WANT_ALG_OFB                        1
+#define PSA_WANT_ALG_PBKDF2_HMAC                1
+//#define PSA_WANT_ALG_RIPEMD160                  1
+#define PSA_WANT_ALG_RSA_OAEP                   1
+#define PSA_WANT_ALG_RSA_PKCS1V15_CRYPT         1
+#define PSA_WANT_ALG_RSA_PKCS1V15_SIGN          1
+#define PSA_WANT_ALG_RSA_PSS                    1
+#define PSA_WANT_ALG_SHA_1                      1
+#define PSA_WANT_ALG_SHA_224                    1
+#define PSA_WANT_ALG_SHA_256                    1
+#define PSA_WANT_ALG_SHA_384                    1
+#define PSA_WANT_ALG_SHA_512                    1
+//#define PSA_WANT_ALG_STREAM_CIPHER              1
+#define PSA_WANT_ALG_TLS12_PRF                  1
+#define PSA_WANT_ALG_TLS12_PSK_TO_MS            1
+//#define PSA_WANT_ALG_XTS                        1
+//#define PSA_WANT_ECC_BRAINPOOL_P_R1_256         1
+//#define PSA_WANT_ECC_BRAINPOOL_P_R1_384         1
+//#define PSA_WANT_ECC_BRAINPOOL_P_R1_512         1
+#define PSA_WANT_ECC_MONTGOMERY_255             1
+#define PSA_WANT_ECC_MONTGOMERY_448             1
+//#define PSA_WANT_ECC_SECP_K1_192                1
+/*
+ * SECP224K1 is buggy via the PSA API in Mbed TLS
+ * (https://github.com/Mbed-TLS/mbedtls/issues/3541). Thus, do not enable it by
+ * default.
+ */
+//#define PSA_WANT_ECC_SECP_K1_224                1
+#define PSA_WANT_ECC_SECP_K1_256                1
+#define PSA_WANT_ECC_SECP_R1_192                1
+#define PSA_WANT_ECC_SECP_R1_224                1
+#define PSA_WANT_ECC_SECP_R1_256                1
+#define PSA_WANT_ECC_SECP_R1_384                1
+#define PSA_WANT_ECC_SECP_R1_521                1
 
-#endif /* KSDK_MBEDTLS_CONFIG_H */
+#define PSA_WANT_KEY_TYPE_DERIVE                1
+#define PSA_WANT_KEY_TYPE_HMAC                  1
+#define PSA_WANT_KEY_TYPE_AES                   1
+//#define PSA_WANT_KEY_TYPE_ARIA                  1
+//#define PSA_WANT_KEY_TYPE_CAMELLIA              1
+//#define PSA_WANT_KEY_TYPE_CHACHA20              1
+//#define PSA_WANT_KEY_TYPE_DES                   1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR          1
+#define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY        1
+#define PSA_WANT_KEY_TYPE_RAW_DATA              1
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR          1
+#define PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY        1
+
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC    1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT   1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT   1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE   1
+
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC    1
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT   1
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT   1
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE 1
+#endif /* MBEDTLS_USER_CONFIG_H */

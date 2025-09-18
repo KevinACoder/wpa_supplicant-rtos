@@ -107,8 +107,9 @@ K_MSGQ_DEFINE(event_queue, sizeof(void *), WS_NUM_MESSAGES, 4);
 K_EVENT_DEFINE(suppMainTaskEvent);
 
 #else
-
-#ifdef CONFIG_P2P
+#if defined(EAP_TLSV1_3)
+#define CONFIG_SUPP_MAIN_THREAD_STACK_SIZE 10240
+#elif defined(CONFIG_P2P)
 #define CONFIG_SUPP_MAIN_THREAD_STACK_SIZE 7168
 #else
 #define CONFIG_SUPP_MAIN_THREAD_STACK_SIZE 6144
@@ -836,9 +837,6 @@ out:
     return;
 }
 
-#if CONFIG_WPA_SUPP_CRYPTO
-static bool crypto_init_done = false;
-#endif
 #if CONFIG_WPA_SUPP_CRYPTO_MBEDTLS_PSA
 #include "supp_psa_api.h"
 #endif
@@ -846,13 +844,6 @@ int start_wpa_supplicant(char *iface_name)
 {
     int ret = 0;
 
-#if (CONFIG_WPA_SUPP_CRYPTO) && !defined(__ZEPHYR__)
-    if (crypto_init_done == false)
-    {
-        CRYPTO_InitHardware();
-        crypto_init_done = true;
-    }
-#endif
 #if CONFIG_WPA_SUPP_CRYPTO_MBEDTLS_PSA
     supp_nxp_crypto_init();
 #endif

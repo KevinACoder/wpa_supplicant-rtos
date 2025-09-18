@@ -29,7 +29,7 @@
     {                                                                              \
         if ((actual) != (expected))                                                \
         {                                                                          \
-            printk(                                                                \
+            wpa_printf(MSG_ERROR,                                                  \
                 "\tassertion failed at %s:%d - "                                   \
                 "actual:%d expected:%d\r\n",                                       \
                 __FILE__, __LINE__, (psa_status_t)actual, (psa_status_t)expected); \
@@ -164,7 +164,7 @@ int aes_128_cbc_encrypt_psa(const u8 *key, const u8 *iv, u8 *data, size_t data_l
 
     if (data_len > SUPP_PSA_MAX_OUTPUT_SIZE)
     {
-        printk("%s invalid input len %d", __func__, data_len);
+        wpa_printf(MSG_ERROR, "%s invalid input len %d", __func__, data_len);
         return -1;
     }
 
@@ -207,7 +207,7 @@ int aes_128_cbc_decrypt_psa(const u8 *key, const u8 *iv, u8 *data, size_t data_l
 
     if (data_len > SUPP_PSA_MAX_OUTPUT_SIZE)
     {
-        printk("%s invalid input len %d", __func__, data_len);
+        wpa_printf(MSG_ERROR, "%s invalid input len %d", __func__, data_len);
         return -1;
     }
 
@@ -250,7 +250,7 @@ int aes_ctr_encrypt_psa(const u8 *key, size_t key_len, const u8 *nonce, u8 *data
 
     if (data_len > SUPP_PSA_MAX_OUTPUT_SIZE)
     {
-        printk("%s invalid input len %d", __func__, data_len);
+        wpa_printf(MSG_ERROR, "%s invalid input len %d", __func__, data_len);
         return -1;
     }
 
@@ -345,7 +345,7 @@ int md_vector_psa(size_t num_elem, const u8 *addr[], const size_t *len, u8 *mac,
     supp_psa_get_hash_alg(md_type, &alg, &block_size);
     if (alg == PSA_ALG_NONE)
     {
-        printk("md_vector unknown md type %d\r\n", md_type);
+        wpa_printf(MSG_ERROR, "md_vector unknown md type %d\r\n", md_type);
         return -1;
     }
 
@@ -386,7 +386,7 @@ int hmac_vector_psa(const u8 *key,
     supp_psa_get_hash_alg(md_type, &alg, &block_size);
     if (alg == PSA_ALG_NONE)
     {
-        printk("hmac_vector unknown md type %d\r\n", md_type);
+        wpa_printf(MSG_ERROR, "hmac_vector unknown md type %d\r\n", md_type);
         return -1;
     }
     alg = PSA_ALG_HMAC(alg);

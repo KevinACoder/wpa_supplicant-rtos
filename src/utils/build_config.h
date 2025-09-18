@@ -31,7 +31,9 @@
 
 #if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS)
 #define CONFIG_FREERTOS 1
+#if !defined(CONFIG_WPA_SUPP_CRYPTO_MBEDTLS_PSA)
 #define CONFIG_KSDK_MBEDTLS 1
+#endif
 #endif
 
 #if !CONFIG_IPV6
