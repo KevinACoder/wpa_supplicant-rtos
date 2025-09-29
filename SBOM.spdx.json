@@ -1,0 +1,195 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "spdxVersion": "SPDX-2.3",
+  "creationInfo": {
+    "created": "2025-09-29T08:10:52Z",
+    "creators": [
+      "Organization: NXP"
+    ],
+    "licenseListVersion": "3.20"
+  },
+  "name": "wpa_supplicant-rtos-v25.12.00-pvw1",
+  "dataLicense": "CC0-1.0",
+  "hasExtractedLicensingInfos": [
+    {
+      "licenseId": "LicenseRef-8fb456cc-8c55-4120-8676-8e3baa90c415",
+      "extractedText": "NONE",
+      "name": "Alternative Commercial License Available"
+    }
+  ],
+  "documentNamespace": "https://nxp.com/spdx/19e016e9-f0ad-4db9-accd-111ac9cfd45b",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
+      "name": "wpa_supplicant-rtos",
+      "versionInfo": "v25.12.00-pvw1",
+      "licenseConcluded": "(BSD-3-Clause)",
+      "licenseDeclared": "(BSD-3-Clause)",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: NXP",
+      "supplier": "NOASSERTION",
+      "externalRefs": [],
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-package-e68934a1-539a-4dab-9cf8-64b9bdfac9fa",
+      "name": "hostapd",
+      "versionInfo": "2.11",
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "LicenseRef-8fb456cc-8c55-4120-8676-8e3baa90c415",
+      "homepage": "http://w1.fi/hostapd/",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: hostapd",
+      "supplier": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:redhat_package:hostapd:2.11:2.el10:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        }
+      ],
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-package-bd6ba105-69f6-4839-b234-61efd820f3e3",
+      "name": "mbed TLS",
+      "versionInfo": "v2.28.10",
+      "licenseConcluded": "(Apache-2.0 OR GPL-2.0-or-later)",
+      "licenseDeclared": "(Apache-2.0 OR GPL-2.0-or-later)",
+      "homepage": "https://www.trustedfirmware.org/",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: mbed TLS",
+      "supplier": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:arm:mbed_tls:2.28.10:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:o:arm:mbed_tls:2.28.10:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:mbed:mbedtls:2.28.10:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        }
+      ],
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-package-7bc66adc-a3ce-46a5-8c52-21c32f7b6131",
+      "name": "nrfconnect/sdk-hostap",
+      "versionInfo": "fix_sauce_tag_snapshot",
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "NOASSERTION",
+      "homepage": "https://github.com/nrfconnect/sdk-hostap",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: nrfconnect/sdk-hostap",
+      "supplier": "NOASSERTION",
+      "externalRefs": [],
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-package-9bc4a596-0134-458d-9c28-6bf58ab0cfa3",
+      "name": "wpa_supplicant - IEEE 802.1X, WPA, WPA2, RSN, IEEE 802.11i",
+      "versionInfo": "2.11",
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "homepage": "http://w1.fi/wpa_supplicant/",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: wpa_supplicant - IEEE 802.1X, WPA, WPA2, RSN, IEEE 802.11i",
+      "supplier": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:w1.fi:wpa_supplicant:2.11:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:almalinux_package:wpa_supplicant:2.11:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:redhat_package:wpa_supplicant:2.11:2.el9:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:redhat_package:wpa_supplicant:2.11:3.el10:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:wpa_supplicant:wpa_supplicant:2.11:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        }
+      ],
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-package-1c45b06f-ae0c-4e80-b796-c003b53be434",
+      "name": "zephyrproject-rtos/hostap",
+      "versionInfo": "hostap_2_11",
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: zephyrproject-rtos",
+      "supplier": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:github/zephyrproject-rtos/hostap@hostap_2_11",
+          "referenceType": "purl"
+        },
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "b51a65ab-38f7-490f-93a2-c615481333f5",
+          "referenceType": "BlackDuck-ComponentOrigin"
+        }
+      ],
+      "filesAnalyzed": false
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b"
+    },
+    {
+      "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-package-bd6ba105-69f6-4839-b234-61efd820f3e3"
+    },
+    {
+      "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-package-7bc66adc-a3ce-46a5-8c52-21c32f7b6131"
+    },
+    {
+      "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-package-1c45b06f-ae0c-4e80-b796-c003b53be434"
+    },
+    {
+      "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-package-9bc4a596-0134-458d-9c28-6bf58ab0cfa3"
+    },
+    {
+      "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
+      "relationshipType": "DYNAMIC_LINK",
+      "relatedSpdxElement": "SPDXRef-package-7bc66adc-a3ce-46a5-8c52-21c32f7b6131"
+    },
+    {
+      "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-package-e68934a1-539a-4dab-9cf8-64b9bdfac9fa"
+    }
+  ]
+}
