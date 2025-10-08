@@ -3336,13 +3336,13 @@ void wpa_supp_notify_acs(const struct netif *dev)
 
     OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
 
+    struct hostapd_hw_modes *mode;
     hapd_s = get_hostapd_handle(dev);
     if (!hapd_s)
     {
         goto out;
     }
-
-    struct hostapd_hw_modes *mode = hapd_s->current_mode;
+    mode = hapd_s->current_mode;
 
     conf = hapd_s->conf;
     conf->ht_capab &= ~HT_CAP_INFO_SHORT_GI40MHZ;

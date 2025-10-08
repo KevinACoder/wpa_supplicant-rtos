@@ -2551,6 +2551,9 @@ struct wpabuf *crypto_ecdh_set_peerkey_owe(struct crypto_ecdh *ecdh, int inc_y, 
 
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_entropy_context entropy;
+    
+    mbedtls_pk_context *peer;
+    int len_secret;
 
     /* Initialize CTR_DRBG context */
     mbedtls_ctr_drbg_init(&ctr_drbg);
@@ -2605,7 +2608,7 @@ struct wpabuf *crypto_ecdh_set_peerkey_owe(struct crypto_ecdh *ecdh, int inc_y, 
         goto cleanup;
     }
 
-    mbedtls_pk_context *peer = (mbedtls_pk_context *)pkey;
+    peer = (mbedtls_pk_context *)pkey;
 
     /* Setup ECDH context from EC key */
     /* Call to mbedtls_ecdh_get_params() will initialize the context when not LEGACY context */
@@ -2621,7 +2624,7 @@ struct wpabuf *crypto_ecdh_set_peerkey_owe(struct crypto_ecdh *ecdh, int inc_y, 
         wpa_printf(MSG_ERROR, "Failed to set peer's ECDH context");
         goto cleanup;
     }
-    int len_secret = inc_y ? 2 * len : len;
+    len_secret = inc_y ? 2 * len : len;
     secret         = os_zalloc(len_secret);
     if (!secret)
     {
