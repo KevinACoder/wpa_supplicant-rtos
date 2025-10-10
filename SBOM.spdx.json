@@ -2,7 +2,7 @@
   "SPDXID": "SPDXRef-DOCUMENT",
   "spdxVersion": "SPDX-2.3",
   "creationInfo": {
-    "created": "2025-09-29T08:10:52Z",
+    "created": "2025-10-10T03:16:39Z",
     "creators": [
       "Organization: NXP"
     ],
@@ -51,11 +51,11 @@
       "filesAnalyzed": false
     },
     {
-      "SPDXID": "SPDXRef-package-bd6ba105-69f6-4839-b234-61efd820f3e3",
+      "SPDXID": "SPDXRef-package-fea2dbed-9f9b-4b25-92a4-808a7bec9a49",
       "name": "mbed TLS",
-      "versionInfo": "v2.28.10",
-      "licenseConcluded": "(Apache-2.0 OR GPL-2.0-or-later)",
-      "licenseDeclared": "(Apache-2.0 OR GPL-2.0-or-later)",
+      "versionInfo": "v3.6.4",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
       "homepage": "https://www.trustedfirmware.org/",
       "downloadLocation": "NOASSERTION",
       "originator": "Organization: mbed TLS",
@@ -63,17 +63,17 @@
       "externalRefs": [
         {
           "referenceCategory": "SECURITY",
-          "referenceLocator": "cpe:2.3:a:arm:mbed_tls:2.28.10:*:*:*:*:*:*:*",
+          "referenceLocator": "cpe:2.3:a:arm:mbed_tls:3.6.4:*:*:*:*:*:*:*",
           "referenceType": "cpe23Type"
         },
         {
           "referenceCategory": "SECURITY",
-          "referenceLocator": "cpe:2.3:o:arm:mbed_tls:2.28.10:*:*:*:*:*:*:*",
+          "referenceLocator": "cpe:2.3:o:arm:mbed_tls:3.6.4:*:*:*:*:*:*:*",
           "referenceType": "cpe23Type"
         },
         {
           "referenceCategory": "SECURITY",
-          "referenceLocator": "cpe:2.3:a:mbed:mbedtls:2.28.10:*:*:*:*:*:*:*",
+          "referenceLocator": "cpe:2.3:a:mbed:mbedtls:3.6.4:*:*:*:*:*:*:*",
           "referenceType": "cpe23Type"
         }
       ],
@@ -105,12 +105,7 @@
       "externalRefs": [
         {
           "referenceCategory": "SECURITY",
-          "referenceLocator": "cpe:2.3:a:w1.fi:wpa_supplicant:2.11:*:*:*:*:*:*:*",
-          "referenceType": "cpe23Type"
-        },
-        {
-          "referenceCategory": "SECURITY",
-          "referenceLocator": "cpe:2.3:a:almalinux_package:wpa_supplicant:2.11:*:*:*:*:*:*:*",
+          "referenceLocator": "cpe:2.3:a:wpa_supplicant:wpa_supplicant:2.11:*:*:*:*:*:*:*",
           "referenceType": "cpe23Type"
         },
         {
@@ -125,7 +120,12 @@
         },
         {
           "referenceCategory": "SECURITY",
-          "referenceLocator": "cpe:2.3:a:wpa_supplicant:wpa_supplicant:2.11:*:*:*:*:*:*:*",
+          "referenceLocator": "cpe:2.3:a:w1.fi:wpa_supplicant:2.11:*:*:*:*:*:*:*",
+          "referenceType": "cpe23Type"
+        },
+        {
+          "referenceCategory": "SECURITY",
+          "referenceLocator": "cpe:2.3:a:almalinux_package:wpa_supplicant:2.11:*:*:*:*:*:*:*",
           "referenceType": "cpe23Type"
         }
       ],
@@ -164,12 +164,12 @@
     {
       "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-package-bd6ba105-69f6-4839-b234-61efd820f3e3"
+      "relatedSpdxElement": "SPDXRef-package-fea2dbed-9f9b-4b25-92a4-808a7bec9a49"
     },
     {
       "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-package-7bc66adc-a3ce-46a5-8c52-21c32f7b6131"
+      "relatedSpdxElement": "SPDXRef-package-9bc4a596-0134-458d-9c28-6bf58ab0cfa3"
     },
     {
       "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
@@ -179,7 +179,7 @@
     {
       "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-package-9bc4a596-0134-458d-9c28-6bf58ab0cfa3"
+      "relatedSpdxElement": "SPDXRef-package-7bc66adc-a3ce-46a5-8c52-21c32f7b6131"
     },
     {
       "spdxElementId": "SPDXRef-package-19e016e9-f0ad-4db9-accd-111ac9cfd45b",
