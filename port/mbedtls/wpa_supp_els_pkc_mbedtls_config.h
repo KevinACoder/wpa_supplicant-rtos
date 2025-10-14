@@ -44,8 +44,9 @@
 #define MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
 
 void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
-
+#ifndef MBEDTLS_PLATFORM_MEMORY
 #define MBEDTLS_PLATFORM_MEMORY
+#endif
 #define MBEDTLS_PLATFORM_STD_CALLOC pvPortCalloc
 #define MBEDTLS_PLATFORM_STD_FREE vPortFree
 
