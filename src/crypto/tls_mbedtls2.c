@@ -2132,7 +2132,6 @@ int tls_connection_export_key(void *tls_ctx,
 #include <mbedtls/cipher.h>
 static size_t tls_mbedtls_ssl_keyblock_size(mbedtls_ssl_context *ssl)
 {
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) /* XXX: (not extracted for PSA crypto) */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (os_strcmp(mbedtls_ssl_get_version(ssl), "TLSv1.3") == 0)
         return 0; /* (calculation not extracted) */
@@ -2171,7 +2170,6 @@ static size_t tls_mbedtls_ssl_keyblock_size(mbedtls_ssl_context *ssl)
         return keylen + mac_key_len + ivlen;
     }
 #endif                               /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */ /* (not extracted for PSA crypto) */
     return 0;
 }
 #endif /* MBEDTLS_VERSION_NUMBER >= 0x03000000 */ /* mbedtls 3.0.0 */
@@ -2190,10 +2188,9 @@ int tls_connection_get_eap_fast_key(void *tls_ctx, struct tls_connection *conn, 
 
 #if MBEDTLS_VERSION_NUMBER >= 0x03000000 /* mbedtls 3.0.0 */
     conn->expkey_keyblock_size = tls_mbedtls_ssl_keyblock_size(&conn->ssl);
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+
     if (conn->expkey_keyblock_size == 0)
         return -1;
-#endif
 #endif
     size_t skip            = conn->expkey_keyblock_size * 2;
     unsigned char *tmp_out = os_malloc(skip + out_len);
