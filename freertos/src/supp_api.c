@@ -3342,8 +3342,8 @@ void wpa_supp_notify_acs(const struct netif *dev)
     {
         goto out;
     }
-    mode = hapd_s->current_mode;
 
+    mode = hapd_s->current_mode;
     conf = hapd_s->conf;
     conf->ht_capab &= ~HT_CAP_INFO_SHORT_GI40MHZ;
     conf->ht_capab &= ~HT_CAP_INFO_SUPP_CHANNEL_WIDTH_SET;
@@ -6398,7 +6398,7 @@ int wpa_supp_nan_publish(const struct netif *dev, wlan_nan_publish_params_t *nan
     OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
 
     publish_id = wpas_nan_usd_publish(wpa_s, nan_publish->service_name,
-                                      nan_publish->srv_proto_type,
+                                      (enum nan_service_protocol_type)nan_publish->srv_proto_type,
                                       ssi, &params, p2p);
     if (publish_id > 0)
     {
@@ -6507,7 +6507,7 @@ int wpa_supp_nan_subscribe(const struct netif *dev, wlan_nan_subscribe_params_t 
     OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
 
     subscribe_id = wpas_nan_usd_subscribe(wpa_s, nan_subscribe->service_name,
-                                          nan_subscribe->srv_proto_type,
+                                          (enum nan_service_protocol_type)nan_subscribe->srv_proto_type,
                                           ssi, &params, p2p);
     if (subscribe_id > 0)
         ret = subscribe_id;

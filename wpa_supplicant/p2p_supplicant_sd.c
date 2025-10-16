@@ -652,8 +652,7 @@ static void wpas_sd_all_asp(struct wpa_supplicant *wpa_s, struct wpabuf *resp, u
      *  - Service name: '*'
      *  - Service Information Request Length: 0
      */
-    const u8 q[] = {1, (const u8)'*', 0};
-
+    const u8 q[] = {1, (u8)'*', 0};
     if (p2p_get_p2ps_adv_list(wpa_s->global->p2p))
         wpas_sd_req_asp(wpa_s, resp, srv_trans_id, q, sizeof(q));
 }
