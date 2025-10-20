@@ -160,7 +160,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * Comment if your system does not support time functions
  */
-//#define MBEDTLS_HAVE_TIME
+#define MBEDTLS_HAVE_TIME
 
 /**
  * \def MBEDTLS_HAVE_TIME_DATE
@@ -181,7 +181,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  * mbedtls_platform_gmtime_r() at compile-time by using the macro
  * MBEDTLS_PLATFORM_GMTIME_R_ALT.
  */
-//#define MBEDTLS_HAVE_TIME_DATE
+#define MBEDTLS_HAVE_TIME_DATE
 
 /**
  * \def MBEDTLS_PLATFORM_MEMORY
@@ -250,7 +250,8 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  * platform function
  */
 //#define MBEDTLS_PLATFORM_EXIT_ALT
-//#define MBEDTLS_PLATFORM_TIME_ALT
+#define MBEDTLS_PLATFORM_TIME_ALT
+#define MBEDTLS_PLATFORM_MS_TIME_ALT
 //#define MBEDTLS_PLATFORM_FPRINTF_ALT
 //#define MBEDTLS_PLATFORM_PRINTF_ALT
 //#define MBEDTLS_PLATFORM_SNPRINTF_ALT

@@ -15,6 +15,7 @@
  */
 #include "mbedtls/platform_time.h"
 #include "fsl_rtc.h"
+#include "osa.h"
 
 #ifdef MBEDTLS_PLATFORM_TIME_ALT
 mbedtls_time_t time_func_alt(mbedtls_time_t *timer)
@@ -30,6 +31,13 @@ void supp_set_mbedtls_set_time()
     mbedtls_platform_set_time(time_func_alt);
 #endif
 }
+
+#ifdef MBEDTLS_PLATFORM_TIME_ALT
+mbedtls_ms_time_t mbedtls_ms_time(void)
+{
+    return (mbedtls_ms_time_t)OSA_GetTimestamp();
+}
+#endif
 
 #ifdef MBEDTLS_PLATFORM_GMTIME_R_ALT
 struct tm *mbedtls_platform_gmtime_r(const mbedtls_time_t *tt,
