@@ -2169,8 +2169,9 @@ static size_t tls_mbedtls_ssl_keyblock_size(mbedtls_ssl_context *ssl)
         size_t ivlen       = mbedtls_cipher_info_get_iv_size(cipher_info);
         return keylen + mac_key_len + ivlen;
     }
-#endif                               /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+#else
     return 0;
+#endif                               /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 }
 #endif /* MBEDTLS_VERSION_NUMBER >= 0x03000000 */ /* mbedtls 3.0.0 */
 
