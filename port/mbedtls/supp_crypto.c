@@ -86,6 +86,28 @@ int _gettimeofday(struct timeval *tv, void *tzvp)
 
     return 0;
 }
+
+time_t time(time_t *t)
+{
+    time_t ltime;
+    struct tm time = {0};
+    rtc_datetime_t datetime;
+
+    RTC_GetDatetime(RTC, &datetime);
+    time.tm_year = datetime.year - 1900;
+    time.tm_mon  = datetime.month - 1;
+    time.tm_mday = datetime.day;
+    time.tm_hour = datetime.hour;
+    time.tm_min  = datetime.minute;
+    time.tm_sec  = datetime.second;
+
+    ltime = mktime(&time);
+
+    if (t)
+        *t = ltime;
+
+    return ltime;
+}
 #endif
 #endif
 #endif

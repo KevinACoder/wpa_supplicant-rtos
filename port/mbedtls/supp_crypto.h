@@ -24,7 +24,9 @@ void supp_set_mbedtls_set_time();
 #if defined ( __GNUC__ )
 #if defined(MBEDTLS_HAVE_TIME) || defined(MBEDTLS_HAVE_TIME_DATE)
 #include <time.h>
+#include <lwip/sockets.h>
 int _gettimeofday(struct timeval *tv, void *tzvp);
+time_t time(time_t *t);
 #endif
 #endif
 #endif
