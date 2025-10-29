@@ -59,6 +59,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#ifndef CONFIG_WPA_SUPP_CRYPTO_MBEDTLS_PSA
 #if defined(MBEDTLS_NXP_SSSAPI)
 #include "sssapi_mbedtls.h"
 #elif defined(MBEDTLS_MCUX_CSS_API)
@@ -81,7 +82,7 @@
 #include "ksdk_mbedtls.h"
 #endif
 #endif
-
+#endif
 #endif /* CONFIG_WPA_SUPP_CRYPTO */
 
 extern OSA_SEMAPHORE_HANDLE_DEFINE(wpaSuppReadySemaphoreHandle);
