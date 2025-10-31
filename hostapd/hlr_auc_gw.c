@@ -1226,7 +1226,7 @@ static void process_hlr_event()
 {
     void *mem;
     char *buf = NULL, *resp;
-    int res;
+    size_t res;
     
 #ifdef __ZEPHYR__
     while (k_msgq_get(&hlr_cli_event_queue, &mem, K_NO_WAIT) == 0)
