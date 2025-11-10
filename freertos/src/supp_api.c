@@ -2111,6 +2111,12 @@ int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
                     }
                 }
 
+                if(0 == network->security.wpa3_sb_192 && 0 == network->security.wpa3_sb && 0 == network->security.wpa3_ent)
+                {
+                    ssid->group_cipher    |= WPA_CIPHER_TKIP;
+                    ssid->pairwise_cipher |= WPA_CIPHER_TKIP;
+                }
+
                 str_clear_free((char *)wpa_s->conf->openssl_ciphers);
                 wpa_s->conf->openssl_ciphers = dup_binstr(openssl_ciphers, os_strlen(openssl_ciphers));
 
