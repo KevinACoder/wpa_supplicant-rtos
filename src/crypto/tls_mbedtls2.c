@@ -2099,7 +2099,7 @@ int tls_connection_export_key(void *tls_ctx,
     if (!conn || !conn->established)
         return -1;
 
-#if (MBEDTLS_VERSION_NUMBER >= 0x03040000)
+#if (MBEDTLS_VERSION_NUMBER >= 0x03040000) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (os_strcmp(mbedtls_ssl_get_version(&conn->ssl), "TLSv1.3") == 0)
     {
         psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(
@@ -2204,7 +2204,7 @@ int tls_connection_get_eap_fast_key(void *tls_ctx, struct tls_connection *conn, 
     os_memcpy(seed + MBEDTLS_EXPKEY_RAND_LEN, conn->expkey_randbytes, MBEDTLS_EXPKEY_RAND_LEN);
 
 #if MBEDTLS_VERSION_NUMBER >= 0x02120000 /* mbedtls 2.18.0 */
-#if (MBEDTLS_VERSION_NUMBER >= 0x03040000)
+#if (MBEDTLS_VERSION_NUMBER >= 0x03040000) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (os_strcmp(mbedtls_ssl_get_version(&conn->ssl), "TLSv1.3") == 0)
     {
         psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(
