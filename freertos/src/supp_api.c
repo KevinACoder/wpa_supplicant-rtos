@@ -2087,7 +2087,7 @@ int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
                             /* Per WiFi Cert WPA3 test plan 19.5.2 step 4, STAUT should only send
                              * TLS_ECDHE_RSA_AES_256_GCM_SHA384 and TLS_DHE_RSA_AES_256_GCM_SHA384
                              * as the TLS ciphers in the Client Hello frame during EAP exchange */
-                            os_snprintf(phase1, sizeof(phase1), "tls_suiteb=1");
+                            os_snprintf(phase1, sizeof(phase1), "tls_suiteb=1 tls_disable_tlsv1_3=1");
                             str_clear_free(ssid->eap.phase1);
                             ssid->eap.phase1 = dup_binstr(phase1, os_strlen(phase1));
                         }
