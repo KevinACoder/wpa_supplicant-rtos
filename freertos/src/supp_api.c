@@ -2260,7 +2260,7 @@ int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
                 {
                     ssid->eap.eap_methods->method = EAP_TYPE_TTLS;
 
-                    const char *phase2 = "autheap=TLS";
+                    const char *phase2 = "autheap=TLS tls_disable_tlsv1_3=1";
 
                     str_clear_free(ssid->eap.phase2);
                     ssid->eap.phase2 = dup_binstr(phase2, os_strlen(phase2));
@@ -2300,7 +2300,7 @@ int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
                 {
                     ssid->eap.eap_methods->method = EAP_TYPE_PEAP;
 
-                    const char *phase2 = "auth=TLS";
+                    const char *phase2 = "auth=TLS tls_disable_tlsv1_3=1";
 
                     os_snprintf(phase1, sizeof(phase1), "peapver=%d peaplabel=%d crypto_binding=%d", network->security.eap_ver,
                                 network->security.peap_label, network->security.eap_crypto_binding);
