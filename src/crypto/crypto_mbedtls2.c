@@ -3584,8 +3584,16 @@ struct wpabuf *crypto_ec_key_get_subject_public_key(struct crypto_ec_key *key)
         /* rewrite into compressed point format and rebuild ASN.1 */
         p[1] = (buf[sizeof(buf) - 1] & 1) ? 0x03 : 0x02;
         n    = 1 + 1 + (n - 2) / 2;
-        len  = mbedtls_asn1_write_len(&p, buf, n) + (int)n;
-        len += mbedtls_asn1_write_tag(&p, buf, MBEDTLS_ASN1_BIT_STRING);
+        if ((len = mbedtls_asn1_write_len(&p, buf, n)) < 0)
+        {
+            return NULL;
+        }
+        len  += (int)n;
+        if ((ret = mbedtls_asn1_write_len(&p, buf, MBEDTLS_ASN1_BIT_STRING)) < 0)
+        {
+            return NULL;
+        }
+        len += ret;
         os_memmove(p - alen, a, alen);
         len += alen;
         p -= alen;
