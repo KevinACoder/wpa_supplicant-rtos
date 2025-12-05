@@ -288,6 +288,45 @@ static void wpa_drv_freertos_event_acs_channel_selected(struct freertos_drv_if_c
         wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_ACS_CHANNEL_SELECTED, event);
 }
 
+#if CONFIG_WPA_SUPP_NAN_USD
+/**
+ * is_nan_sdf_frame - Check if frame is a NAN Service Discovery Frame
+ * @frame: Frame data
+ * @len: Frame length
+ *
+ * Returns: true if frame is NAN SDF, false otherwise
+ */
+static bool is_nan_sdf_frame(const u8 *frame, size_t len)
+{
+    const u8 *payload = NULL;
+    u32 vendor_type   = 0;
+
+    /* Minimum length: MAC header (24) + Category (1) + PA (1) + OUI+Type (4) */
+    if (len < 30)
+    {
+        return false;
+    }
+
+    payload = frame + 24;
+
+    /* Check Category: Public Action (0x04) */
+    if (payload[0] != WLAN_ACTION_PUBLIC)
+    {
+        return false;
+    }
+
+    /* Check Public Action: Vendor Specific (0x09) */
+    if (payload[1] != WLAN_PA_VENDOR_SPECIFIC)
+    {
+        return false;
+    }
+
+    /* Check OUI + Type: NAN SDF (0x506f9a13) */
+    vendor_type = WPA_GET_BE32(&payload[2]);
+    return vendor_type == NAN_SDF_VENDOR_TYPE;
+}
+#endif /* CONFIG_WPA_SUPP_NAN_USD */
+
 static void wpa_drv_freertos_event_mgmt_tx_status(struct freertos_drv_if_ctx *if_ctx,
                                                   const u8 *frame,
                                                   size_t len,
@@ -322,9 +361,10 @@ static void wpa_drv_freertos_event_mgmt_tx_status(struct freertos_drv_if_ctx *if
         wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_TX_STATUS, &event);
 
 #if CONFIG_WPA_SUPP_NAN_USD
-    if (wpa_s && wpa_s->nan_usd_tx_work)
+    if (wpa_s && is_nan_sdf_frame(frame, len))
     {
-        wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_TX_WAIT_EXPIRE, &event);
+        wpa_printf(MSG_DEBUG, "NAN: Sending EVENT_TX_WAIT_EXPIRE");
+        wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_TX_WAIT_EXPIRE, NULL);
     }
 #endif
 }
