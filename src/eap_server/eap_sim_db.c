@@ -733,7 +733,7 @@ static void process_eap_sim_db_event(struct eap_sim_db_data *data)
     void *mem;
     char *buf = NULL;
     char *pos, *cmd, *imsi;
-    int res;
+    size_t res;
 
 #ifdef __ZEPHYR__
     while (k_msgq_get(&eap_sim_db_event_queue, &mem, K_NO_WAIT) == 0)
