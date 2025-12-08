@@ -3624,7 +3624,7 @@ struct wpabuf *crypto_ec_key_get_ecprivate_key(struct crypto_ec_key *key, bool i
     if (privlen < 0)
         return NULL;
 
-    struct wpabuf *wbuf;
+    struct wpabuf *wbuf = NULL;
 
     /*  Note: data is written at the end of the buffer! Use the
      *        return value to determine where you should start
@@ -3640,16 +3640,32 @@ struct wpabuf *crypto_ec_key_get_ecprivate_key(struct crypto_ec_key *key, bool i
         size_t len;
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         /* ECPrivateKey SEQUENCE */
-        mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+        ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+        if (ret != 0)
+        {
+            return NULL;
+        }
         /* version INTEGER */
         unsigned char *v = p;
-        mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_INTEGER);
+        ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_INTEGER);
+        if (ret != 0)
+        {
+            return NULL;
+        }
         p += len;
         /* privateKey OCTET STRING */
-        mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_OCTET_STRING);
+        ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_OCTET_STRING);
+        if (ret != 0)
+        {
+            return NULL;
+        }
         p += len;
         /* parameters ECParameters */
-        mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED);
+        ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED);
+        if (ret != 0)
+        {
+            return NULL;
+        }
         p += len;
 
         /* write new SEQUENCE header (we know that it fits in priv[]) */
