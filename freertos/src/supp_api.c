@@ -2714,10 +2714,31 @@ out:
     return ret;
 }
 
+static int wpa_supp_get_ssid_id(struct wpa_supplicant *wpa_s, char *ssid)
+{
+    struct wpa_ssid *ssid_local;
+    int id = -1;
+
+    ssid_local = wpa_s->conf->ssid;
+
+    while (ssid_local)
+    {
+        if (os_strncmp((const char *)ssid_local->ssid, ssid, ssid_local->ssid_len) == 0)
+        {
+            id = ssid_local->id;
+            break;
+        }
+        ssid_local = ssid_local->next;
+    }
+
+    return id;
+}
+
 int wpa_supp_remove_network(const struct netif *dev, struct wlan_network *network)
 {
     struct wpa_supplicant *wpa_s;
     int ret = 0;
+    int id = -1;
 #if CONFIG_HOSTAPD
     struct hostapd_iface *hapd_s;
 #endif
@@ -2802,13 +2823,25 @@ int wpa_supp_remove_network(const struct netif *dev, struct wlan_network *networ
                 break;
         }
 
-        ret = wpa_supplicant_remove_network(wpa_s, network->id);
+
+        id = wpa_supp_get_ssid_id(wpa_s, network->ssid);
+        if (id == -1)
+        {
+            wpa_printf(MSG_DEBUG,
+                    "ssid id is not correct"
+                    "id=%d",
+                    id);
+            ret = -1;
+            goto out;
+        }
+
+        ret = wpa_supplicant_remove_network(wpa_s, id);
         if (ret == -1)
         {
             wpa_printf(MSG_DEBUG,
                     "Could not find network "
                     "id=%d",
-                    network->id);
+                    id);
             ret = -1;
             goto out;
         }
@@ -2817,7 +2850,7 @@ int wpa_supp_remove_network(const struct netif *dev, struct wlan_network *networ
             wpa_printf(MSG_DEBUG,
                     "Not able to remove the "
                     "network id=%d",
-                    network->id);
+                    id);
             ret = -1;
             goto out;
         }
