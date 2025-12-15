@@ -3760,9 +3760,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  * unconditionally use the implementation for mbedtls_platform_gmtime_r()
  * supplied at compile time.
  */
-#if !defined(CONFIG_HAVE_TIME_DISABLE)
 #define MBEDTLS_PLATFORM_GMTIME_R_ALT
-#endif
 
 /**
  * Enable the verified implementations of ECDH primitives from Project Everest
