@@ -693,6 +693,7 @@ void eloop_run(void)
                             &taskNotification);
 #endif
 
+        OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
         /* check if some registered timeouts have occurred */
         if (eloop.timeout)
         {
@@ -701,17 +702,16 @@ void eloop_run(void)
             os_get_time(&now);
             if (!os_time_before(&now, &eloop.timeout->time))
             {
-                OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
                 tmp           = eloop.timeout;
                 eloop.timeout = eloop.timeout->next;
                 tmp->handler(tmp->eloop_data, tmp->user_data);
                 eloop_remove_timeout(tmp);
-                OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
             }
         }
 
         if ((taskNotification == 0) || (taskNotification == (1U << DUMMY)))
         {
+            OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
             continue;
         }
 
@@ -719,6 +719,7 @@ void eloop_run(void)
         {
             process_wpa_supplicant_event();
         }
+        OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
 
 #if 0
         eloop_sock_table_dispatch(&eloop.readers, rfds);
