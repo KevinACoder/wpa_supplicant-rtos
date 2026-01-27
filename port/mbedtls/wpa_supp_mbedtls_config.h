@@ -65,9 +65,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW 1
 #endif
 
-/* Disable DCP temporarily for hash issue */
-#undef PSA_CRYPTO_DRIVER_DCP
-
 /* Reduce RAM usage.*/
 /* More info: https://tls.mbed.org/kb/how-to/reduce-mbedtls-memory-and-storage-footprint */
 #define MBEDTLS_ECP_FIXED_POINT_OPTIM 1 /* To reduce peak memory usage */
