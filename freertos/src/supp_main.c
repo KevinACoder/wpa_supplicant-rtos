@@ -847,7 +847,12 @@ int start_wpa_supplicant(char *iface_name)
     int ret = 0;
 
 #if CONFIG_WPA_SUPP_CRYPTO_MBEDTLS_PSA
-    supp_nxp_crypto_init();
+    ret = supp_nxp_crypto_init();
+    if (ret != PSA_SUCCESS)
+    {
+        wpa_printf(MSG_ERROR, "supp_nxp_crypto_init failed ret: %d", ret);
+        return -WM_FAIL;
+    }
 #endif
 
 #ifdef __ZEPHYR__
