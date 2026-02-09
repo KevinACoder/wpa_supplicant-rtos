@@ -78,6 +78,8 @@ struct freertos_wpa_supp_dev_callbk_fns
 
     void (*scan_done)(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event);
 
+    void (*sched_scan_stopped)(struct freertos_drv_if_ctx *if_ctx);
+
     void (*survey_res)(struct freertos_drv_if_ctx *if_ctx, struct freq_survey *survey, bool more_res);
 
     void (*auth_resp)(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event);

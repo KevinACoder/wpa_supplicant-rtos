@@ -188,6 +188,13 @@ void wpa_drv_freertos_event_proc_scan_done(struct freertos_drv_if_ctx *if_ctx, u
         wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_SCAN_RESULTS, event);
 }
 
+void wpa_drv_freertos_event_proc_sched_scan_stopped(struct freertos_drv_if_ctx *if_ctx)
+{
+	wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx,
+			EVENT_SCHED_SCAN_STOPPED,
+			NULL);
+}
+
 void wpa_drv_freertos_event_proc_auth_resp(struct freertos_drv_if_ctx *if_ctx, union wpa_event_data *event)
 {
     wpa_supplicant_event_wrapper(if_ctx->supp_if_ctx, EVENT_AUTH, event);
@@ -562,6 +569,7 @@ static void *wpa_drv_freertos_init(void *ctx, const char *ifname, void *global_p
     callbk_fns.scan_start        = wpa_drv_freertos_event_proc_scan_start;
     callbk_fns.scan_done         = wpa_drv_freertos_event_proc_scan_done;
     callbk_fns.survey_res        = wpa_drv_freertos_event_proc_survey_res;
+    callbk_fns.sched_scan_stopped = wpa_drv_freertos_event_proc_sched_scan_stopped;
     callbk_fns.auth_resp         = wpa_drv_freertos_event_proc_auth_resp;
     callbk_fns.assoc_resp        = wpa_drv_freertos_event_proc_assoc_resp;
     callbk_fns.deauth            = wpa_drv_freertos_event_proc_deauth;
@@ -1293,7 +1301,9 @@ static int wpa_drv_freertos_get_capa(void *priv, struct wpa_driver_capa *capa)
 
     capa->max_scan_ssids       = 10;
     capa->max_sched_scan_ssids = 10;
-    capa->sched_scan_supported = 0;
+    capa->sched_scan_supported = 1;
+    capa->max_sched_scan_plan_interval = 60;
+    capa->max_match_sets       = 1;
     capa->max_remain_on_chan   = 5000;
     capa->max_stations         = 32;
     capa->max_acl_mac_addrs    = 32;
