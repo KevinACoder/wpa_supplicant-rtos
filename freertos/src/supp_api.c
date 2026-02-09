@@ -1136,6 +1136,8 @@ static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network 
     conf = hapd_s->conf;
     bss  = conf->last_bss;
 
+    hapd_s->freq = 0;
+
     bss->max_num_sta = 10;
 
     os_memcpy(bss->bssid, network->bssid, ETH_ALEN);
