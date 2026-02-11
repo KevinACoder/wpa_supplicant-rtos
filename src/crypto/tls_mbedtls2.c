@@ -1644,8 +1644,19 @@ static int tls_mbedtls_set_certs(struct tls_conf *tls_conf, const struct tls_con
         }
         const char *pwd = params->private_key_passwd;
 #if MBEDTLS_VERSION_NUMBER >= 0x03000000 /* mbedtls 3.0.0 */
-        ret = mbedtls_pk_parse_key(&tls_conf->private_key, data, len, (const unsigned char *)pwd,
-                                   pwd ? os_strlen(pwd) : 0, mbedtls_ctr_drbg_random, tls_ctx_global.ctr_drbg);
+        /* Check if data represents a PSA opaque key ID (4-byte identifier) */
+        if (len == sizeof(uint32_t))
+        {
+            uint32_t key_id;
+            memcpy(&key_id, data, sizeof(uint32_t));
+            wpa_printf(MSG_DEBUG, "Opaque key id: 0x%x", key_id);
+            ret = mbedtls_pk_setup_opaque(&tls_conf->private_key, key_id);
+        }
+        else
+        {
+            ret = mbedtls_pk_parse_key(&tls_conf->private_key, data, len, (const unsigned char *)pwd,
+                                       pwd ? os_strlen(pwd) : 0, mbedtls_ctr_drbg_random, tls_ctx_global.ctr_drbg);
+        }
 #else
         ret = mbedtls_pk_parse_key(&tls_conf->private_key, data, len, (const unsigned char *)pwd,
                                    pwd ? os_strlen(pwd) : 0);
