@@ -42,4 +42,5 @@ int start_wpa_supplicant(char *iface_name);
 int stop_wpa_supplicant(void);
 
 struct hostapd_iface *hostapd_get_interface(const char *ifname);
+const char *hostapd_msg_ifname_cb(void *ctx);
 #endif /* __SUPP_MAIN_H_ */

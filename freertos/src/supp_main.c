@@ -1290,16 +1290,6 @@ static int hostapd_global_run(struct hapd_interfaces *ifaces, int daemonize, con
 }
 #endif
 
-static const char *hostapd_msg_ifname_cb(void *ctx)
-{
-    struct wpa_supplicant *wpa_s = ctx;
-    if (wpa_s == NULL)
-    {
-        return NULL;
-    }
-    return wpa_s->ifname;
-}
-
 #ifndef HOSTAPD_CLEANUP_INTERVAL
 #define HOSTAPD_CLEANUP_INTERVAL 10
 #endif /* HOSTAPD_CLEANUP_INTERVAL */
@@ -1340,6 +1330,59 @@ struct hostapd_data *hostapd_get_hapd(void)
         hapd = interfaces.iface[0]->bss[0];
     }
     return hapd;
+}
+
+const char *hostapd_msg_ifname_cb(void *ctx)
+{
+    struct wpa_supplicant *wpa_s;
+    struct hostapd_data *hapd;
+    size_t i, j;
+
+    if (ctx == NULL)
+    {
+        return NULL;
+    }
+
+    /* Check if this context belongs to a wpa_supplicant interface
+     * by iterating through the global wpa_supplicant interface list.
+     * This handles ml (STA), wf (P2P), and other wpa_supplicant interfaces.
+     */
+    if (global != NULL)
+    {
+        for (wpa_s = global->ifaces; wpa_s; wpa_s = wpa_s->next)
+        {
+            if (wpa_s == ctx)
+            {
+                /* Found matching wpa_supplicant context */
+                return wpa_s->ifname;
+            }
+        }
+    }
+
+    /* Check if this context belongs to a hostapd interface (ua)
+     * by checking the global hostapd interfaces structure.
+     */
+    if (interfaces.iface != NULL)
+    {
+        for (i = 0; i < interfaces.count; i++)
+        {
+            if (interfaces.iface[i] == NULL)
+                continue;
+
+            for (j = 0; j < interfaces.iface[i]->num_bss; j++)
+            {
+                hapd = interfaces.iface[i]->bss[j];
+                if (hapd == ctx && hapd->conf)
+                {
+                    /* Found matching hostapd context */
+                    return hapd->conf->iface;
+                }
+            }
+        }
+    }
+
+    /* Context not found in either list */
+    return NULL;
 }
 
 /**
