@@ -221,4 +221,6 @@ int wpa_supp_get_sta_info(const struct netif *dev, unsigned char *sta_addr, unsi
 
 int wpa_supp_deinit(void);
 
+int wpa_supp_set_scan_freq(const struct netif *dev, struct wlan_network *network, uint8_t *chan_list, uint8_t num_chans);
+
 #endif /* RTOS_SUPP_MGMT_H */

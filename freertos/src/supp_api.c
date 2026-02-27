@@ -1865,6 +1865,34 @@ static void str2hex(const char *str, char *strH)
 }
 #endif
 
+static inline int chan_to_freq(int chan)
+{
+    /* We use global channel list here and also use the widest
+     * op_class for 5GHz channels as there is no user input
+     * for these (yet).
+     */
+    int freq = -1;
+    int op_classes[] = {81, 82, 128};
+    int op_classes_size = ARRAY_SIZE(op_classes);
+
+    for (int i = 0; i < op_classes_size; i++)
+    {
+        freq = ieee80211_chan_to_freq(NULL, op_classes[i], chan);
+        if (freq > 0)
+        {
+            break;
+        }
+    }
+
+    if (freq <= 0)
+    {
+        wpa_printf(MSG_ERROR, "Invalid channel %d", chan);
+        return -1;
+    }
+
+    return freq;
+}
+
 int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
 {
     int ret               = 0;
@@ -1944,20 +1972,9 @@ int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
 
         if (network->channel != 0U)
         {
-            /* We use global channel list here and also use the widest
-             * op_class for 5GHz channels as there is no user input
-             * for these.
-             */
-            int freq = ieee80211_chan_to_freq(NULL, 81, network->channel);
-
-            if (freq <= 0)
+            int freq = chan_to_freq(network->channel);
+            if (freq < 0)
             {
-                freq = ieee80211_chan_to_freq(NULL, 128, network->channel);
-            }
-
-            if (freq <= 0)
-            {
-                wpa_printf(MSG_DEBUG, "Invalid channel %d", network->channel);
                 ret = -1;
                 goto out;
             }
@@ -7078,3 +7095,88 @@ out:
 
 }
 #endif /* CONFIG_HOSTAPD */
+
+int wpa_supp_set_scan_freq(const struct netif *dev, struct wlan_network *network, uint8_t *chan_list, uint8_t num_chans)
+{
+    struct wpa_supplicant *wpa_s;
+    struct wpa_ssid *ssid = NULL;
+    int *freqs = NULL;
+    int freq = 0;
+    int ret  = 0;
+    int id   = -1;
+    int i    = 0;
+
+    OSA_MutexLock((osa_mutex_handle_t)wpa_supplicant_mutex, osaWaitForever_c);
+
+    wpa_s = get_wpa_s_handle(dev);
+    if (!wpa_s || network->id == -1)
+    {
+        ret = -1;
+        goto out;
+    }
+
+    id = wpa_supp_get_ssid_id(wpa_s, network->ssid);
+    if (id == -1)
+    {
+        wpa_printf(MSG_DEBUG,
+                    "ssid id is not correct"
+                    "id=%d",
+                    id);
+        ret = -1;
+        goto out;
+    }
+
+    ssid = wpa_config_get_network(wpa_s->conf, id);
+    if (!ssid)
+    {
+        wpa_printf(MSG_DEBUG,
+                    "Failed to get ssid from config"
+                    "id=%d",
+                    id);
+        ret = -1;
+        goto out;
+    }
+
+    if (num_chans > 0 && chan_list == NULL)
+    {
+        ret = -1;
+        goto out;
+    }
+
+    if (num_chans == 0)
+    {
+        os_free(ssid->scan_freq);
+        ssid->scan_freq = NULL;
+        ret = 0;
+        goto out;
+    }
+
+    freqs = os_zalloc((num_chans + 1) * sizeof(int));
+    if (!freqs)
+    {
+        ret = -1;
+        goto out;
+    }
+
+    for (i = 0; i < num_chans; i++)
+    {
+        freq = chan_to_freq(chan_list[i]);
+        if (freq < 0)
+        {
+            os_free(freqs);
+            freqs = NULL;
+            ret = -1;
+            goto out;
+        }
+        freqs[i] = freq;
+    }
+    freqs[i] = 0;
+
+    os_free(ssid->scan_freq);
+    ssid->scan_freq = freqs;
+
+out:
+    OSA_MutexUnlock((osa_mutex_handle_t)wpa_supplicant_mutex);
+
+    return ret;
+}
