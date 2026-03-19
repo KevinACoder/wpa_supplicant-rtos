@@ -17,6 +17,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wpa_supplicant.rtos)
         SOURCES port/mbedtls/wpa_supp_mbedtls_config.h
                 port/mbedtls/wpa_supp_els_pkc_mbedtls_config.h
                 port/mbedtls/wpa_supp_ele_s400_mbedtls_config.h
+                port/mbedtls/coex_mbedtls_psa_crypto_config.h
                 port/mbedtls/supp_crypto.c
                 port/mbedtls/supp_crypto.h
                 port/mbedtls/supp_psa_api.c
