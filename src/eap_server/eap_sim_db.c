@@ -94,6 +94,7 @@ struct eap_sim_db_data
 
 static void eap_sim_db_del_timeout(void *eloop_ctx, void *user_ctx);
 static void eap_sim_db_query_timeout(void *eloop_ctx, void *user_ctx);
+extern void hlr_cleanup(void);
 
 #ifdef CONFIG_SQLITE
 
@@ -945,6 +946,7 @@ static int eap_sim_db_open_socket(struct eap_sim_db_data *data)
     {
         return -WM_FAIL;
     }
+    data->sock = 1;
 #endif
     return 0;
 }
@@ -980,6 +982,8 @@ static void eap_sim_db_close_socket(struct eap_sim_db_data *data)
         sys_mbox_free(&eap_sim_db_event_queue);
         eap_sim_db_event_queue = NULL;
     }
+    data->sock = -1;
+    hlr_cleanup();
 #endif
 }
 

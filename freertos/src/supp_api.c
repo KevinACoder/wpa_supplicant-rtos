@@ -109,6 +109,7 @@ struct wpa_supp_api_ctrl
 
 static struct wpa_supp_api_ctrl wpa_supp_api_ctrl;
 static void wpa_supp_scan_res_fail_handler(struct wpa_supplicant *wpa_s);
+extern u8 hlr_get_init_status(void);
 
 static inline struct wpa_supplicant *get_wpa_s_handle(const struct netif *dev)
 {
@@ -3271,6 +3272,23 @@ int wpa_supp_start_ap(const struct netif *dev, struct wlan_network *network, int
             conf->he_oper_centr_freq_seg0_idx = 171;
         }
 #endif
+    }
+
+     if ((
+#if CONFIG_EAP_SIM
+          (network->security.type == WLAN_SECURITY_EAP_SIM) ||
+#endif
+#if CONFIG_EAP_AKA
+          (network->security.type == WLAN_SECURITY_EAP_AKA) ||
+#endif
+#if CONFIG_EAP_AKA_PRIME
+          (network->security.type == WLAN_SECURITY_EAP_AKA_PRIME) ||
+#endif
+          false) && (hlr_get_init_status() == 0))
+    {
+        wpa_printf(MSG_ERROR, "Error! HLR/AuC testing gateway for hostapd EAP-SIM/AKA/AKA-PRIME is not setup!");
+        ret = -1;
+        goto out;
     }
 
     if (reload)

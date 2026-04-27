@@ -1382,7 +1382,7 @@ static void usage(void)
         default_socket_path);
 }
 
-static u8 hlr_init_done = 0;
+u8 hlr_init_done = 0;
 
 int hlr_main(int argc, char *argv[])
 {
@@ -1555,5 +1555,26 @@ int hlr_main(int argc, char *argv[])
     os_program_deinit();
 
     return ret;
+}
+
+u8 hlr_get_init_status()
+{
+    return hlr_init_done;
+}
+
+void hlr_cleanup(void)
+{
+    OSA_EventDestroy((osa_event_handle_t)hlr_event_Handle);
+    OSA_TaskDestroy((osa_task_handle_t)hlr_thread);
+
+    if (sys_mbox_valid(&hlr_cli_event_queue))
+    {
+        sys_mbox_free(&hlr_cli_event_queue);
+        hlr_cli_event_queue = NULL;
+    }
+    cleanup();
+    hlr_init_done = 0;
+    gsm_db = NULL;
+    milenage_db = NULL;
 }
 #endif /* CONFIG_HOSTAPD */
