@@ -944,8 +944,10 @@ static int eap_sim_db_open_socket(struct eap_sim_db_data *data)
     status = OSA_TaskCreate((osa_task_handle_t)eap_sim_db_thread, OSA_TASK(eap_sim_db_main_task), data);
     if (status != KOSA_StatusSuccess)
     {
+        OSA_EventDestroy((osa_event_handle_t)eap_sim_db_event_Handle);
         return -WM_FAIL;
     }
+    /* For FreeRTOS, there is no socket. Mark it to 1 to avoid duplicate task creation */
     data->sock = 1;
 #endif
     return 0;
@@ -974,16 +976,19 @@ static void eap_sim_db_close_socket(struct eap_sim_db_data *data)
         k_msgq_purge(&eap_sim_db_event_queue);
     }
 #elif defined(CONFIG_FREERTOS)
-    OSA_EventDestroy((osa_event_handle_t)eap_sim_db_event_Handle);
-    OSA_TaskDestroy((osa_task_handle_t)eap_sim_db_thread);
-
-    if (sys_mbox_valid(&eap_sim_db_event_queue))
+    if (data->sock >= 0)
     {
-        sys_mbox_free(&eap_sim_db_event_queue);
-        eap_sim_db_event_queue = NULL;
+        OSA_EventDestroy((osa_event_handle_t)eap_sim_db_event_Handle);
+        OSA_TaskDestroy((osa_task_handle_t)eap_sim_db_thread);
+
+        if (sys_mbox_valid(&eap_sim_db_event_queue))
+        {
+            sys_mbox_free(&eap_sim_db_event_queue);
+            eap_sim_db_event_queue = NULL;
+        }
+        data->sock = -1;
+        hlr_cleanup();
     }
-    data->sock = -1;
-    hlr_cleanup();
 #endif
 }
 

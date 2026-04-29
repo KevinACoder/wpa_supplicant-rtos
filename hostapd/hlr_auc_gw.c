@@ -1505,7 +1505,7 @@ int hlr_main(int argc, char *argv[])
         for (;;)
             process(serv_sock);
 #endif
-        hlr_init_done = 1;
+
 #ifdef __ZEPHYR__
 		hlr_cli_thread = k_thread_create(&hlrCliTask, hlrCliTaskStack,
 			K_THREAD_STACK_SIZEOF(hlrCliTaskStack), hlr_main_task, NULL, NULL, NULL,
@@ -1523,9 +1523,11 @@ int hlr_main(int argc, char *argv[])
         status = OSA_TaskCreate((osa_task_handle_t)hlr_thread, OSA_TASK(hlr_main_task), NULL);
         if (status != KOSA_StatusSuccess)
         {
+            OSA_EventDestroy((osa_event_handle_t)hlr_event_Handle);
             return -WM_FAIL;
         }
 #endif
+        hlr_init_done = 1;
     }
     else
     {
@@ -1564,6 +1566,11 @@ u8 hlr_get_init_status()
 
 void hlr_cleanup(void)
 {
+    if (hlr_init_done == 0)
+    {
+        wpa_printf(MSG_DEBUG, "hlr_cli_task is not initialized");
+        return;
+    }
     OSA_EventDestroy((osa_event_handle_t)hlr_event_Handle);
     OSA_TaskDestroy((osa_task_handle_t)hlr_thread);
 
