@@ -6787,7 +6787,7 @@ int wpa_supp_network_status(const struct netif *dev, struct wlan_network *networ
                     network->id            = ssid->id;
                     network->wps_network   = true;
                     network->security.type = wpas_key_mgmt_to_wpa(ssid->key_mgmt);
-
+                    network->unspecified_network &= ~UNSPEC_WPS_NETWORK;
                     if (ssid->ieee80211w == MGMT_FRAME_PROTECTION_DEFAULT)
                     {
                         network->security.mfpc = 0;
