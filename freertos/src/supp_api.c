@@ -1582,6 +1582,8 @@ static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network 
                 wpa_printf(MSG_DEBUG, "%s:Failed to set sae_password", __func__);
                 return -1;
             }
+            /* WPA3 specification requires PMF capability for all SAE connections */
+            bss->sae_require_mfp = 1;
 
             break;
 #endif
