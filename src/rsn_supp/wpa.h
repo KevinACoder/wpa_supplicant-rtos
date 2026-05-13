@@ -133,8 +133,9 @@ enum wpa_sm_conf_params
     WPA_PARAM_OCI_FREQ_EAPOL_G2,
     WPA_PARAM_OCI_FREQ_FT_ASSOC,
     WPA_PARAM_OCI_FREQ_FILS_ASSOC,
-	WPA_PARAM_RSN_OVERRIDE,
-	WPA_PARAM_RSN_OVERRIDE_SUPPORT,
+    WPA_PARAM_RSN_OVERRIDE,
+    WPA_PARAM_RSN_OVERRIDE_SUPPORT,
+    WPA_PARAM_SSID_PROTECTION,
 };
 
 enum wpa_rsn_override {
@@ -174,6 +175,7 @@ void wpa_sm_set_pmk_from_pmksa(struct wpa_sm *sm);
 void wpa_sm_set_fast_reauth(struct wpa_sm *sm, int fast_reauth);
 void wpa_sm_set_scard_ctx(struct wpa_sm *sm, void *scard_ctx);
 void wpa_sm_set_config(struct wpa_sm *sm, struct rsn_supp_config *config);
+void wpa_sm_set_ssid(struct wpa_sm *sm, const u8 *ssid, size_t ssid_len);
 void wpa_sm_set_own_addr(struct wpa_sm *sm, const u8 *addr);
 void wpa_sm_set_ifname(struct wpa_sm *sm, const char *ifname, const char *bridge_ifname);
 void wpa_sm_set_eapol(struct wpa_sm *sm, struct eapol_sm *eapol);

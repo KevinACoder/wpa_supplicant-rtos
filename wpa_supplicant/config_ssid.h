@@ -1195,11 +1195,16 @@ struct wpa_ssid
      */
     int sae_pwe;
 
-	/**
-	 * rsn_overriding - RSN overriding (per-network override for the global
-	 *	parameter with the same name)
-	 */
-	enum wpas_rsn_overriding rsn_overriding;
+    /**
+     * rsn_overriding - RSN overriding (per-network override for the global
+     *	parameter with the same name)
+     */
+    enum wpas_rsn_overriding rsn_overriding;
+
+    /**
+     * ssid_protection - Whether to use SSID protection in 4-way handshake
+     */
+    bool ssid_protection;
 };
 
 #endif /* CONFIG_SSID_H */

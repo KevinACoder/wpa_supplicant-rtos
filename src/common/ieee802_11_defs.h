@@ -579,6 +579,7 @@
 #define WLAN_RSNX_CAPAB_SECURE_LTF     8
 #define WLAN_RSNX_CAPAB_SECURE_RTT     9
 #define WLAN_RSNX_CAPAB_PROT_RANGE_NEG 10
+#define WLAN_RSNX_CAPAB_SSID_PROTECTION 21
 
 /* Action frame categories (IEEE Std 802.11-2016, 9.4.1.11, Table 9-76) */
 #define WLAN_ACTION_SPECTRUM_MGMT             0

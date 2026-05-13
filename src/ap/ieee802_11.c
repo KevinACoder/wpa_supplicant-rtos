@@ -4789,7 +4789,7 @@ static int check_assoc_ies(struct hostapd_data *hapd, struct sta_info *sta,
                         sta->wpa_sm,
                         hapd->conf->ssid_protection &&
                         ieee802_11_rsnx_capab_len(
-                                elems->rsnxe, elems->rsnxe_len,
+                                elems.rsnxe, elems.rsnxe_len,
                                 WLAN_RSNX_CAPAB_SSID_PROTECTION));
 #ifdef CONFIG_HS20
 	} else if (hapd->conf->osen) {
