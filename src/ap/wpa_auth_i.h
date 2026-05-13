@@ -177,6 +177,7 @@ struct wpa_state_machine
     void *eapol_status_cb_ctx1;
     void *eapol_status_cb_ctx2;
 #endif /* CONFIG_TESTING_OPTIONS */
+    bool ssid_protection;
 };
 
 /* per group key state machine data */

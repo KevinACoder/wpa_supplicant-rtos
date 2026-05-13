@@ -3330,6 +3330,9 @@ SM_STATE(WPA_PTK, PTKINITNEGOTIATING)
         kde_len += 2 + RSN_SELECTOR_LEN + 2;
 #endif /* CONFIG_DPP2 */
 
+    if (sm->ssid_protection)
+        kde_len += 2 + conf->ssid_len;
+
     kde = os_malloc(kde_len);
     if (!kde)
         goto done;
@@ -3438,6 +3441,14 @@ SM_STATE(WPA_PTK, PTKINITNEGOTIATING)
         pos = wpa_add_kde(pos, WFA_KEY_DATA_DPP, payload, sizeof(payload), NULL, 0);
     }
 #endif /* CONFIG_DPP2 */
+
+    if (sm->ssid_protection)
+    {
+        *pos++ = WLAN_EID_SSID;
+        *pos++ = conf->ssid_len;
+        os_memcpy(pos, conf->ssid, conf->ssid_len);
+        pos += conf->ssid_len;
+    }
 
     wpa_send_eapol(sm->wpa_auth, sm,
                    (secure ? WPA_KEY_INFO_SECURE : 0) |
@@ -5034,6 +5045,12 @@ void wpa_auth_set_dpp_z(struct wpa_state_machine *sm, const struct wpabuf *z)
     }
 }
 #endif /* CONFIG_DPP2 */
+
+void wpa_auth_set_ssid_protection(struct wpa_state_machine *sm, bool val)
+{
+    if (sm)
+        sm->ssid_protection = val;
+}
 
 void wpa_auth_set_transition_disable(struct wpa_authenticator *wpa_auth, u8 val)
 {

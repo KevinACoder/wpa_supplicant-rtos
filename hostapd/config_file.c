@@ -5632,6 +5632,14 @@ static int hostapd_config_fill(
     {
         bss->rnr = atoi(pos);
     }
+    else if (os_strcmp(buf, "ssid_protection") == 0)
+    {
+        int val = atoi(pos);
+
+        if (val < 0 || val > 1)
+            return 1;
+        bss->ssid_protection = val;
+    }
     else
     {
         wpa_printf(MSG_ERROR, "Line %d: unknown configuration item '%s'", line, buf);
