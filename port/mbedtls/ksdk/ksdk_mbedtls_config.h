@@ -202,7 +202,7 @@
  * You can comment this macro if you provide your own alternate implementation.
  *
  */
-#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS)
+#if (defined(USE_RTOS) && (USE_RTOS > 0U)) && defined(SDK_OS_FREE_RTOS)
 #define MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
 #endif
 
@@ -346,7 +346,7 @@
 #define FSL_MD_COOKIE_USE_SHA256
 #endif
 
-#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS)
+#if (defined(USE_RTOS) && (USE_RTOS > 0U)) && defined(SDK_OS_FREE_RTOS)
 #include "FreeRTOS.h"
 
 void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
@@ -355,7 +355,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_PLATFORM_STD_CALLOC pvPortCalloc
 #define MBEDTLS_PLATFORM_STD_FREE vPortFree
 
-#endif /* USE_RTOS*/
+#endif /* (defined(USE_RTOS) && (USE_RTOS > 0U)) && defined(SDK_OS_FREE_RTOS) */
 
 /* Reduce RAM usage.*/
 /* More info: https://tls.mbed.org/kb/how-to/reduce-mbedtls-memory-and-storage-footprint */

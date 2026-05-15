@@ -40,7 +40,7 @@
 #else
 #include "fsl_debug_console.h"
 
-#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS)
+#if (defined(USE_RTOS) && (USE_RTOS > 0U)) && defined(SDK_OS_FREE_RTOS)
 #include "FreeRTOS.h"
 
 #define MBEDTLS_SSL_CLI_ALLOW_WEAK_CERTIFICATE_VERIFICATION_WITHOUT_HOSTNAME
@@ -51,7 +51,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define MBEDTLS_PLATFORM_STD_CALLOC pvPortCalloc
 #define MBEDTLS_PLATFORM_STD_FREE vPortFree
 
-#endif /* USE_RTOS*/
+#endif /* (defined(USE_RTOS) && (USE_RTOS > 0U)) && defined(SDK_OS_FREE_RTOS) */
 #endif /* __ZEPHYR__ */
 
 #ifdef CONFIG_WPA_SUPP_CRYPTO_MBEDTLS_PSA

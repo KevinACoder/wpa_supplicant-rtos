@@ -6135,7 +6135,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 /******************************************************************************/
 /*************************** FreeRTOS ********************************************/
 /******************************************************************************/
-#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT)
+#if (defined(USE_RTOS) && (USE_RTOS > 0U)) && defined(SDK_OS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT)
 #include <stdlib.h>
 #include "FreeRTOS.h"
 #include "task.h"
@@ -6183,7 +6183,7 @@ void *pvPortCalloc(size_t num, size_t size)
     return pvReturn;
 }
 #endif // configFRTOS_MEMORY_SCHEME
-#endif /* USE_RTOS && defined(SDK_OS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT) */
+#endif /* (defined(USE_RTOS) && (USE_RTOS > 0U)) && defined(SDK_OS_FREE_RTOS) && defined(MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT) */
 
 /*-----------------------------------------------------------*/
 /*--------- mbedTLS threading functions for FreeRTOS --------*/
@@ -6302,7 +6302,7 @@ static void CRYPTO_ConfigureThreadingMcux(void)
 }
 #endif /* defined(MBEDTLS_MCUX_FREERTOS_THREADING_ALT) */
 
-#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS) && defined(MBEDTLS_PLATFORM_TIME_ALT)
+#if (defined(USE_RTOS) && (USE_RTOS > 0U)) && defined(SDK_OS_FREE_RTOS) && defined(MBEDTLS_PLATFORM_TIME_ALT)
 #include <stdlib.h>
 #include "FreeRTOS.h"
 #include "task.h"
