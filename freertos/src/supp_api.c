@@ -1693,6 +1693,11 @@ static int hostapd_update_bss(struct hostapd_iface *hapd_s, struct wlan_network 
     else if (network->security.mfpc)
         bss->ieee80211w = MGMT_FRAME_PROTECTION_OPTIONAL;
 
+    if (network->ssid_protect_specific)
+        bss->ssid_protection = network->ssid_protection;
+    else
+        bss->ssid_protection = 0;
+
     return 0;
 }
 
@@ -1949,6 +1954,16 @@ int wpa_supp_add_network(const struct netif *dev, struct wlan_network *network)
         {
             ssid->priority = network->priority;
         }
+
+        if (network->ssid_protect_specific)
+        {
+            ssid->ssid_protection = network->ssid_protection;
+        }
+        else
+        {
+            ssid->ssid_protection = 0;
+        }
+
         ssid->key_mgmt = network->security.key_mgmt;
         ssid->scan_ssid = 1;
         //ssid->proactive_key_caching = network->security.pkc;
