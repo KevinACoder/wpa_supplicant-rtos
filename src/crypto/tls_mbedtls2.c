@@ -1649,7 +1649,7 @@ static int tls_mbedtls_set_certs(struct tls_conf *tls_conf, const struct tls_con
         {
             uint32_t key_id;
             memcpy(&key_id, data, sizeof(uint32_t));
-            wpa_printf(MSG_DEBUG, "Opaque key id: 0x%x", key_id);
+            wpa_printf(MSG_INFO, "Opaque key id: 0x%x", key_id);
             ret = mbedtls_pk_setup_opaque(&tls_conf->private_key, key_id);
         }
         else
@@ -1736,6 +1736,26 @@ static const mbedtls_x509_crt_profile tls_mbedtls_crt_profile_suiteb192_anypk = 
 #endif
     3072,
 };
+
+#if defined(CONFIG_WIFI_ENTERPRISE_SECURE_BLOB)
+static int tls_allowed_ciphersuites_sha_256[] = {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    MBEDTLS_TLS1_3_CHACHA20_POLY1305_SHA256,
+    MBEDTLS_TLS1_3_AES_128_GCM_SHA256,
+    MBEDTLS_TLS1_3_AES_128_CCM_SHA256,
+    MBEDTLS_TLS1_3_AES_128_CCM_8_SHA256,
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+    MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+    MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+    MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256,
+    MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256,
+    MBEDTLS_TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,
+    MBEDTLS_TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256,
+    0
+};
+#endif
 
 static int tls_mbedtls_set_params(struct tls_conf *tls_conf, const struct tls_connection_params *params)
 {
@@ -1829,7 +1849,12 @@ static int tls_mbedtls_set_params(struct tls_conf *tls_conf, const struct tls_co
                                                    "ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384"))
             return -1;
     }
-
+#if defined(CONFIG_WIFI_ENTERPRISE_SECURE_BLOB)
+    if (mbedtls_pk_get_bitlen(&tls_conf->private_key) == 256)
+    {
+        mbedtls_ssl_conf_ciphersuites(&tls_conf->conf, tls_allowed_ciphersuites_sha_256);
+    }
+#endif
     return 0;
 }
 

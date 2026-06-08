@@ -3798,6 +3798,21 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  */
 
+/**
+ * \def MBEDTLS_PSA_CRYPTO_STORAGE_C
+ *
+ * Enable the Platform Security Architecture persistent key storage.
+ *
+ * Module:  library/psa_crypto_storage.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C,
+ *           either MBEDTLS_PSA_ITS_FILE_C or a native implementation of
+ *           the PSA ITS interface
+ */
+#if defined(CONFIG_WIFI_ENTERPRISE_SECURE_BLOB)
+#define MBEDTLS_PSA_CRYPTO_STORAGE_C
+#endif
+
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 #ifdef MBEDTLS_PRIVATE
 #undef MBEDTLS_PRIVATE
@@ -3863,7 +3878,6 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 #define PSA_WANT_ECC_SECP_R1_256                1
 #define PSA_WANT_ECC_SECP_R1_384                1
 #define PSA_WANT_ECC_SECP_R1_521                1
-
 #define PSA_WANT_KEY_TYPE_DERIVE                1
 #define PSA_WANT_KEY_TYPE_HMAC                  1
 #define PSA_WANT_KEY_TYPE_AES                   1
