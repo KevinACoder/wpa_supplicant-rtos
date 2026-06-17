@@ -1,5 +1,7 @@
 /*
  * Driver interaction with FreeRTOS WLAN device drivers.
+ * Copyright (c) 2023, Nordic Semiconductor
+ * Copyright 2022-2026 NXP
  *
  * This software may be distributed under the terms of the BSD license.
  * See README for more details.
