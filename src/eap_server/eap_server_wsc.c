@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-
+#ifdef EAP_SERVER_WSC
 #include "utils/common.h"
 #include "eloop.h"
 #include "eap_i.h"
@@ -531,3 +531,4 @@ int eap_server_wsc_register(void)
 
     return eap_server_method_register(eap);
 }
+#endif /* EAP_SERVER_WSC */

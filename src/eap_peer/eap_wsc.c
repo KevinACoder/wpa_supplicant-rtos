@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-
+#ifdef EAP_WSC
 #include "utils/common.h"
 #include "uuid.h"
 #include "eap_i.h"
@@ -636,3 +636,4 @@ int eap_peer_wsc_register(void)
 
     return eap_peer_method_register(eap);
 }
+#endif /* EAP_WSC */
