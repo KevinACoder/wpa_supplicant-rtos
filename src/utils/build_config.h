@@ -15,6 +15,11 @@
 #ifndef BUILD_CONFIG_H
 #define BUILD_CONFIG_H
 
+#if defined(CONFIG_OS_EMBOX)
+/* the port config header defines everything this file would default;
+ * the NXP wifi/SDK defaults do not apply */
+#else
+
 #include <wifi_config_default.h>
 
 #if !CONFIG_WPA_SUPP
@@ -39,6 +44,8 @@
 #endif
 
 #define CONFIG_WPA_SUPP_CRYPTO   1
+
+#endif /* CONFIG_OS_EMBOX */
 
 #define WPA_SUPPLICANT_CLEANUP_INTERVAL 120
 

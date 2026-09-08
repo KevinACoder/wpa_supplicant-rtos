@@ -31,11 +31,24 @@
 #endif /* _WIN32_WCE */
 #include <ctype.h>
 
-#if !(defined(MSC_VER) || defined(__ZEPHYR__) || (CONFIG_FREERTOS))
+#if defined(CONFIG_OS_EMBOX) && !defined(__NetBSD__)
+/* plain libc; errno and the IP structs stand in for the sockets.
+ * TUs that also live in the net80211/BSD world define __NetBSD__
+ * through port_config_bsd.h and keep the BSD headers instead. */
+#include <errno.h>
+#include <netinet/in.h>
+#include <net/if.h> /* IFNAMSIZ */
+/* the NXP tree sprinkles PRINTF from its console header; use printf */
+#ifndef PRINTF
+#define PRINTF printf
+#endif
+#elif !(defined(MSC_VER) || defined(__ZEPHYR__) || (CONFIG_FREERTOS))
 #include <unistd.h>
 #endif /* _MSC_VER */
 
-#if !((CONFIG_NATIVE_WINDOWS) || defined(__ZEPHYR__) || (CONFIG_FREERTOS))
+#if defined(CONFIG_OS_EMBOX)
+/* no sockets: l2_packet and the driver talk straight to net80211 */
+#elif !((CONFIG_NATIVE_WINDOWS) || defined(__ZEPHYR__) || (CONFIG_FREERTOS))
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -58,7 +71,9 @@
 #include <zephyr/shell/shell.h>
 #endif /* defined(__ZEPHYR__) */
 
+#if !defined(CONFIG_OS_EMBOX)
 #include <wm_net.h>
+#endif
 
 #if (CONFIG_FREERTOS)
 
@@ -118,6 +133,11 @@
 #define CONFIG_INTERNAL_AES 1
 #endif
 
+#if defined(CONFIG_OS_EMBOX)
+/* PSK-only feature set: no bgscan, no SME (the net80211 layer owns the
+ * MLME), no ctrl-iface, no WNM, no EAP.  CONFIG_NO_RANDOM_POOL and
+ * CONFIG_NO_CONFIG_WRITE come from the port config header. */
+#else
 #define CONFIG_BGSCAN 1
 #define CONFIG_BGSCAN_SIMPLE 1
 
@@ -136,6 +156,7 @@
 #define CONFIG_NO_RANDOM_POOL 1
 #define CONFIG_WNM 1
 #define IEEE8021X_EAPOL
+#endif
 
 #if CONFIG_HOSTAPD
 #define CONFIG_AP 1

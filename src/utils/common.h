@@ -9,7 +9,9 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#ifndef __ZEPHYR__
+#if defined(CONFIG_OS_EMBOX)
+/* plain libc stdio */
+#elif !defined(__ZEPHYR__)
 #include "fsl_debug_console.h"
 #endif
 
@@ -17,6 +19,27 @@
 #include <endian.h>
 #include <byteswap.h>
 #endif /* __linux__ */
+
+#if defined(CONFIG_OS_EMBOX) && !defined(__NetBSD__)
+#if !defined(__BYTE_ORDER) || !defined(bswap_16)
+/* little-endian aarch64 fallback when no OS endian header ran */
+#ifndef __BYTE_ORDER
+#define __BYTE_ORDER    __LITTLE_ENDIAN
+#define __LITTLE_ENDIAN 1234
+#define __BIG_ENDIAN    4321
+#endif
+#ifndef bswap_16
+static inline unsigned short bswap_16(unsigned short v)
+{
+    return ((v & 0xff) << 8) | (v >> 8);
+}
+#endif
+static inline unsigned int bswap_32(unsigned int v)
+{
+    return ((v & 0xff) << 24) | ((v & 0xff00) << 8) | ((v & 0xff0000) >> 8) | (v >> 24);
+}
+#endif
+#endif /* CONFIG_OS_EMBOX */
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__) || defined(__OpenBSD__)
 #include <sys/types.h>
