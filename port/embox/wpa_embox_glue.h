@@ -23,6 +23,7 @@ struct wpa_supplicant_event_msg {
 int wpa_embox_send_event(void *ctx, int event, const void *data);
 int wpa_embox_send_dummy_event(void);
 void wpa_embox_process_events(void);
+void wpa_embox_process_jobs(void);
 
 /* the queue wakeup used by eloop_register_timeout */
 void wpa_embox_wake_loop(void);

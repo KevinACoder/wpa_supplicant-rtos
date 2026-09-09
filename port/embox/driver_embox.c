@@ -62,12 +62,12 @@ struct embox_drv_data {
 	struct wpa_driver_capa capa;
 	int associated;
 	int if_up;
+	int scan_pending;
 };
 
 /* single adapter: the net80211 ic_newstate hook has no priv slot */
 static struct embox_drv_data g_drv;
-static int (*g_prev_newstate)(struct ieee80211com *,
-    enum ieee80211_state, int);
+extern const struct ieee80211_cipher ieee80211_cipher_ccmp;
 
 /* ------------------------------------------------------------------ */
 /* net80211 wiring */
@@ -82,78 +82,60 @@ int wlan_embox_ensure_up(void)
 	if (urtwn_reg_softc == NULL) {
 		return -1;
 	}
+	urtwn_reg_softc->sc_ic.ic_roaming = IEEE80211_ROAMING_MANUAL;
 	wlan_urtwn_up();
-	return 0;
+	return (urtwn_reg_softc->sc_if.if_flags & IFF_RUNNING) ? 0 : -1;
 }
 
 /*
- * Runs in the urtwn taskq thread as part of the newstate chain.
- * nstate is the state the protocol layer is migrating to: S_RUN means
- * the AP accepted our association, S_AUTH after having been
- * associated means the AP sent deauth/disassoc.
+ * Queue protocol notifications from the driver worker for the supplicant.
  */
-static int embox_newstate(struct ieee80211com *ic,
-    enum ieee80211_state nstate, int arg) {
-	enum ieee80211_state ostate = ic->ic_state;
-	int ret;
+static void embox_wireless_event(enum wlan_port_event event,
+    const uint8_t *addr, void *arg) {
+	struct embox_drv_data *drv = arg;
+	union wpa_event_data data;
 
-	ret = g_prev_newstate(ic, nstate, arg);
-
-	if (g_drv.ctx == NULL) {
-		return ret;
+	(void) addr;
+	if (drv->ctx == NULL) {
+		return;
 	}
-	if (nstate == IEEE80211_S_RUN && ostate != IEEE80211_S_RUN) {
-		g_drv.associated = 1;
-		/* bsd raises EVENT_ASSOC with no extra data; the
-		 * supplicant picks bssid/ssid through get_bssid */
-		wpa_embox_send_event(g_drv.ctx, EVENT_ASSOC, NULL);
-	} else if ((nstate == IEEE80211_S_AUTH ||
-		       nstate == IEEE80211_S_INIT) &&
-		   (ostate == IEEE80211_S_RUN ||
-		       ostate == IEEE80211_S_ASSOC)) {
-		union wpa_event_data data;
-		u8 bssid[ETH_ALEN];
-
-		g_drv.associated = 0;
-		memset(&data, 0, sizeof(data));
-		os_memcpy(bssid,
-		    ic->ic_bss != NULL ? ic->ic_bss->ni_bssid :
-					 (const u8 *) etherbroadcastaddr,
-		    ETH_ALEN);
-		data.deauth_info.addr = bssid;
-		data.deauth_info.reason_code = (u16) arg;
-		wpa_embox_send_event(g_drv.ctx,
-		    nstate == IEEE80211_S_INIT ? EVENT_DISASSOC :
-						 EVENT_DEAUTH,
-		    &data);
+	memset(&data, 0, sizeof(data));
+	switch (event) {
+	case WLAN_PORT_SCAN_DONE:
+		if (__atomic_exchange_n(&drv->scan_pending, 0, __ATOMIC_ACQ_REL)) {
+			wpa_printf(MSG_DEBUG, "embox: scan complete");
+			wpa_embox_send_event(drv->ctx, EVENT_SCAN_RESULTS, &data);
+		}
+		break;
+	case WLAN_PORT_ASSOC:
+		drv->associated = 1;
+		wpa_printf(MSG_DEBUG, "embox: association complete");
+		wpa_embox_send_event(drv->ctx, EVENT_ASSOC, NULL);
+		break;
+	case WLAN_PORT_DISASSOC:
+		drv->associated = 0;
+		wpa_embox_send_event(drv->ctx, EVENT_DISASSOC, NULL);
+		break;
 	}
-	return ret;
 }
 
 /*
  * The supplicant scans with ap_scan=1: scan2() starts the net80211
- * scan and this poller reports completion (F_SCAN cleared), whether it
- * ended with candidates or not.
+ * scan. This timeout reports an aborted scan if no completion arrives.
  */
 static void embox_scan_poll(void *eloop_ctx, void *timeout_ctx) {
-	struct ieee80211com *ic = &g_drv.sc->sc_ic;
-	static int polls;
+	union wpa_event_data data;
 
 	(void) eloop_ctx;
 	(void) timeout_ctx;
 
-	if ((ic->ic_flags & IEEE80211_F_SCAN) == 0) {
-		wpa_printf(MSG_DEBUG, "embox: scan done");
-		wpa_embox_send_event(g_drv.ctx, EVENT_SCAN_RESULTS, NULL);
-		return;
+	if (__atomic_exchange_n(&g_drv.scan_pending, 0, __ATOMIC_ACQ_REL)) {
+		memset(&data, 0, sizeof(data));
+		data.scan_info.aborted = 1;
+		ieee80211_new_state(&g_drv.sc->sc_ic, IEEE80211_S_INIT, -1);
+		wpa_printf(MSG_ERROR, "embox: scan timed out");
+		wpa_embox_send_event(g_drv.ctx, EVENT_SCAN_RESULTS, &data);
 	}
-	if (++polls > 150) { /* ~30 s cap */
-		polls = 0;
-		wpa_printf(MSG_DEBUG, "embox: scan poll timeout");
-		wpa_embox_send_event(g_drv.ctx, EVENT_SCAN_RESULTS, NULL);
-		return;
-	}
-	eloop_register_timeout(0, 200000, embox_scan_poll, NULL, NULL);
 }
 
 /* ------------------------------------------------------------------ */
@@ -203,23 +185,25 @@ static void *embox_init2(void *ctx, const char *ifname, void *global_priv) {
 	g_drv.ctx = ctx;
 
 	ic = &g_drv.sc->sc_ic;
-	/* the supplicant owns BSS selection; set it before the interface
-	 * comes up so the auto-scan in urtwn_init does not start */
+	ieee80211_crypto_register(&ieee80211_cipher_ccmp);
+	/* The supplicant owns BSS selection and receives scan completion. */
 	ic->ic_roaming = IEEE80211_ROAMING_MANUAL;
-	g_prev_newstate = ic->ic_newstate;
-	ic->ic_newstate = embox_newstate;
 
+	wlan_port_set_event_handler(embox_wireless_event, &g_drv);
 	wlan_port_set_eapol_rx(embox_eapol_rx, &g_drv);
-	wlan_netdev_ensure();
+	if (wlan_netdev_ensure() != 0) {
+		wlan_port_set_event_handler(NULL, NULL);
+		wlan_port_set_eapol_rx(NULL, NULL);
+		g_drv.ctx = NULL;
+		return NULL;
+	}
 
 	/* one-shot bring-up: firmware load + power on */
-	wlan_urtwn_up();
 	g_drv.if_up = 1;
 
 	g_drv.capa.key_mgmt = WPA_KEY_MGMT_PSK;
-	g_drv.capa.enc = WPA_DRIVER_CAPA_ENC_CCMP |
-			 WPA_DRIVER_CAPA_ENC_TKIP;
-	g_drv.capa.auth = WPA_DRIVER_AUTH_OPEN | WPA_DRIVER_AUTH_SHARED;
+	g_drv.capa.enc = WPA_DRIVER_CAPA_ENC_CCMP;
+	g_drv.capa.auth = WPA_DRIVER_AUTH_OPEN;
 	g_drv.capa.max_scan_ssids = 1;
 
 	return &g_drv;
@@ -227,14 +211,10 @@ static void *embox_init2(void *ctx, const char *ifname, void *global_priv) {
 
 static void embox_deinit(void *priv) {
 	struct embox_drv_data *drv = priv;
-	struct ieee80211com *ic;
-
-	if (drv->sc != NULL) {
-		ic = &drv->sc->sc_ic;
-		if (ic->ic_newstate == embox_newstate) {
-			ic->ic_newstate = g_prev_newstate;
-		}
-	}
+	(void) drv;
+	__atomic_store_n(&g_drv.scan_pending, 0, __ATOMIC_RELEASE);
+	eloop_cancel_timeout(embox_scan_poll, NULL, NULL);
+	wlan_port_set_event_handler(NULL, NULL);
 	wlan_port_set_eapol_rx(NULL, NULL);
 	memset(&g_drv, 0, sizeof(g_drv));
 }
@@ -269,20 +249,21 @@ static int embox_set_countermeasures(void *priv, int enabled) {
 
 static int embox_scan2(void *priv, struct wpa_driver_scan_params *params) {
 	struct embox_drv_data *drv = priv;
-	struct ieee80211com *ic = &drv->sc->sc_ic;
+	const u8 *ssid = params->num_ssids ? params->ssids[0].ssid : NULL;
+	size_t len = params->num_ssids ? params->ssids[0].ssid_len : 0;
 
-	if (params->num_ssids > 0 && params->ssids[0].ssid_len > 0) {
-		/* directed probe for the requested SSID */
-		memcpy(ic->ic_des_essid, params->ssids[0].ssid,
-		    params->ssids[0].ssid_len);
-		ic->ic_des_esslen = params->ssids[0].ssid_len;
-	} else {
-		ic->ic_des_esslen = 0;
+	if (params->num_ssids > 1 || len > IEEE80211_NWID_LEN ||
+	    __atomic_exchange_n(&drv->scan_pending, 1, __ATOMIC_ACQ_REL)) {
+		return -1;
 	}
-
-	wpa_printf(MSG_DEBUG, "embox: scan requested");
-	ieee80211_new_state(ic, IEEE80211_S_SCAN, -1);
-	eloop_register_timeout(0, 200000, embox_scan_poll, NULL, NULL);
+	eloop_cancel_timeout(embox_scan_poll, NULL, NULL);
+	if (eloop_register_timeout(30, 0, embox_scan_poll, NULL, NULL) < 0 ||
+	    wlan_port_scan(ssid, len) < 0) {
+		__atomic_store_n(&drv->scan_pending, 0, __ATOMIC_RELEASE);
+		eloop_cancel_timeout(embox_scan_poll, NULL, NULL);
+		return -1;
+	}
+	wpa_printf(MSG_DEBUG, "embox: scan requested ssid_len=%u", (unsigned) len);
 	return 0;
 }
 
@@ -316,7 +297,7 @@ static struct wpa_scan_res *embox_scan_entry(struct ieee80211_node *ni) {
 	r->beacon_ie_len = 0;
 
 	ie = (u8 *) (r + 1);
-	if (ni->ni_esslen > 0) {
+	{
 		*ie++ = WLAN_EID_SSID;
 		*ie++ = (u8) ni->ni_esslen;
 		os_memcpy(ie, ni->ni_essid, ni->ni_esslen);
@@ -390,6 +371,9 @@ static int embox_deauthenticate(void *priv, const u8 *addr,
 	struct ieee80211com *ic = &drv->sc->sc_ic;
 
 	(void) addr;
+	__atomic_store_n(&drv->scan_pending, 0, __ATOMIC_RELEASE);
+	eloop_cancel_timeout(embox_scan_poll, NULL, NULL);
+	drv->associated = 0;
 	ieee80211_new_state(ic, IEEE80211_S_INIT, reason_code);
 	return 0;
 }
@@ -419,8 +403,7 @@ static int embox_associate(void *priv,
 	/* privacy/WPA mode flags, the ioctl equivalents */
 	ic->ic_flags &= ~(IEEE80211_F_WPA1 | IEEE80211_F_WPA2);
 	if (params->wpa_ie != NULL && params->wpa_ie_len > 0) {
-		ic->ic_flags |= IEEE80211_F_WPA |
-		    (params->wpa_ie[0] == WLAN_EID_RSN ? IEEE80211_F_WPA2
+		ic->ic_flags |= (params->wpa_ie[0] == WLAN_EID_RSN ? IEEE80211_F_WPA2
 						       : IEEE80211_F_WPA1);
 	}
 	if (params->pairwise_suite != WPA_CIPHER_NONE ||
@@ -460,6 +443,7 @@ static int embox_associate(void *priv,
 		return -1;
 	}
 	/* sta_join consumes the reference */
+	ic->ic_bss->ni_authmode = IEEE80211_AUTH_8021X;
 	ieee80211_sta_join(ic, ni);
 	return 0;
 }
@@ -470,17 +454,15 @@ static int embox_set_key(void *priv, struct wpa_driver_set_key_params *p) {
 	struct ieee80211_key *wk;
 	struct ieee80211_node *ni;
 	int is_group;
+	int ret = -1;
 
-	if (p->alg == WPA_ALG_NONE) {
-		return 0; /* SW crypto: rekeying overwrites in place */
-	}
-	if (p->alg != WPA_ALG_CCMP || p->key == NULL ||
-	    p->key_len != 16) {
+	if (p->key_idx < 0 || p->key_idx >= IEEE80211_WEP_NKID ||
+	    (p->alg != WPA_ALG_NONE && (p->alg != WPA_ALG_CCMP ||
+	    p->key == NULL || p->key_len != 16))) {
 		wpa_printf(MSG_INFO, "embox: unsupported key alg %d", p->alg);
 		return -1;
 	}
-	is_group = p->addr != NULL &&
-	    (p->addr[0] & 0x01) != 0; /* mcast/bcast bit: GTK */
+	is_group = p->addr == NULL || (p->addr[0] & 0x01) != 0;
 
 	ieee80211_key_update_begin(ic);
 	if (is_group) {
@@ -490,8 +472,13 @@ static int embox_set_key(void *priv, struct wpa_driver_set_key_params *p) {
 		wk = &ni->ni_ucastkey;
 	}
 
+	if (p->alg == WPA_ALG_NONE) {
+		ret = ieee80211_crypto_delkey(ic, wk) ? 0 : -1;
+		goto out;
+	}
 	if (ieee80211_crypto_newkey(ic, IEEE80211_CIPHER_AES_CCM,
-		IEEE80211_KEY_XMIT | IEEE80211_KEY_RECV, wk)) {
+		IEEE80211_KEY_XMIT | IEEE80211_KEY_RECV |
+		(is_group ? IEEE80211_KEY_GROUP : 0), wk)) {
 		wk->wk_keylen = (u_int) p->key_len;
 		wk->wk_keyrsc = 0;
 		wk->wk_keytsc = 0;
@@ -507,22 +494,37 @@ static int embox_set_key(void *priv, struct wpa_driver_set_key_params *p) {
 			}
 			wk->wk_keyrsc = pn;
 		}
-		ieee80211_crypto_setkey(ic, wk,
+		ret = ieee80211_crypto_setkey(ic, wk,
 		    is_group ? (u8 *) etherbroadcastaddr
-			     : ic->ic_bss->ni_macaddr);
+			     : ic->ic_bss->ni_macaddr) ? 0 : -1;
 		if (is_group && p->set_tx) {
 			ic->ic_def_txkey = p->key_idx;
 		}
 	} else {
 		wpa_printf(MSG_ERROR, "embox: newkey failed");
 	}
+out:
 	ieee80211_key_update_end(ic);
 	if (!is_group) {
 		ieee80211_free_node(ni);
 	}
 
-	wpa_printf(MSG_DEBUG, "embox: %s key %d installed",
-	    is_group ? "group" : "pairwise", p->key_idx);
+	wpa_printf(ret ? MSG_ERROR : MSG_DEBUG, "embox: %s key %d alg=%d result=%d",
+	    is_group ? "group" : "pairwise", p->key_idx, p->alg, ret);
+	return ret;
+}
+
+static int embox_set_supp_port(void *priv, int authorized) {
+	struct embox_drv_data *drv = priv;
+	struct ieee80211_node *ni = drv->sc->sc_ic.ic_bss;
+
+	if (ni != NULL) {
+		if (authorized) {
+			ieee80211_node_authorize(ni);
+		} else {
+			ieee80211_node_unauthorize(ni);
+		}
+	}
 	return 0;
 }
 
@@ -549,4 +551,5 @@ const struct wpa_driver_ops wpa_driver_embox_ops = {
 	.associate = embox_associate,
 	.get_capa = embox_get_capa,
 	.set_key = embox_set_key,
+	.set_supp_port = embox_set_supp_port,
 };

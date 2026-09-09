@@ -32,7 +32,7 @@ static int wlan_netdev_xmit(struct net_device *dev, struct sk_buff *skb) {
 	if (skb == NULL) {
 		return -EINVAL;
 	}
-	ret = wlan_port_xmit((const uint8_t *) skb->data, skb->len);
+	ret = wlan_port_xmit(skb->mac.raw, skb->len);
 	if (ret < 0) {
 		dev->stats.tx_err++;
 		skb_free(skb);
@@ -74,6 +74,7 @@ static int wlan_netdev_setup(struct net_device *dev) {
 	dev->hdr_len = ETH_HEADER_SIZE;
 	dev->addr_len = ETH_ALEN;
 	dev->type = ARP_HRD_ETHERNET;
+	memset(dev->broadcast, 0xff, ETH_ALEN);
 	dev->flags = IFF_BROADCAST | IFF_RUNNING;
 	dev->drv_ops = &wlan_netdev_ops;
 	dev->ops = &ethernet_ops;
@@ -102,13 +103,10 @@ int wlan_netdev_ensure(void) {
 	if (wlan_port_get_hwaddr(hwaddr) == 0) {
 		memcpy(wlan_netdev->dev_addr, hwaddr, ETH_ALEN);
 	}
-	ret = netdev_register(wlan_netdev);
-	if (ret != 0) {
-		wlan_netdev = NULL;
-		return ret;
-	}
 	ret = inetdev_register_dev(wlan_netdev);
 	if (ret != 0) {
+		netdev_free(wlan_netdev);
+		wlan_netdev = NULL;
 		return ret;
 	}
 	wlan_port_set_data_rx(wlan_netdev_data_rx, wlan_netdev);

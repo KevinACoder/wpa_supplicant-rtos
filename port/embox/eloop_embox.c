@@ -14,10 +14,7 @@
 #include <includes.h>
 
 #include <sys/time.h>
-#include <kernel/time/time.h>
 #include <kernel/time/ktime.h>
-#include <kernel/thread/sync/mutex.h>
-#include <kernel/thread/sync/semaphore.h>
 
 #include "utils/common.h"
 #include "dl_list.h"
@@ -66,11 +63,9 @@ struct eloop_signal {
 };
 
 static struct eloop_data eloop;
-static struct mutex eloop_mtx;
-static struct sem eloop_wake_sem;
 
 static void eloop_wake(void) {
-	semaphore_leave(&eloop_wake_sem);
+	/* The event loop polls external queues at most 20 ms apart. */
 }
 
 void wpa_embox_wake_loop(void) {
@@ -78,12 +73,10 @@ void wpa_embox_wake_loop(void) {
 }
 
 static int clock_now(struct os_time *now) {
-	return os_get_time(now);
+	return os_get_reltime((struct os_reltime *) now);
 }
 
 int eloop_init(void) {
-	mutex_init(&eloop_mtx);
-	semaphore_init(&eloop_wake_sem, 0);
 	memset(&eloop, 0, sizeof(eloop));
 	return 0;
 }
@@ -381,12 +374,9 @@ int eloop_register_signal_reconfig(eloop_signal_handler handler,
 }
 
 void eloop_run(void) {
-	while (!eloop.terminate &&
-	       (eloop.timeout != NULL || eloop.readers.count > 0 ||
-		   eloop.writers.count > 0 || eloop.exceptions.count > 0)) {
+	while (!eloop.terminate) {
 		struct os_time now, tv;
 		unsigned int timeout_ms = 0u;
-
 		if (eloop.timeout != NULL) {
 			clock_now(&now);
 			if (os_time_before(&now, &eloop.timeout->time)) {
@@ -412,7 +402,7 @@ void eloop_run(void) {
 			ksleep(slice);
 		}
 		/* run everything that came due, outside the lock */
-		for (;;) {
+		for (unsigned budget = 0; budget < 16; budget++) {
 			struct eloop_timeout *due = NULL;
 
 			clock_now(&now);
@@ -427,8 +417,8 @@ void eloop_run(void) {
 			due->handler(due->eloop_data, due->user_data);
 			os_free(due);
 		}
-
 		wpa_embox_process_events();
+		wpa_embox_process_jobs();
 	}
 }
 

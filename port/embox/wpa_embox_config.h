@@ -24,7 +24,7 @@
 /* internal crypto only: PSK/WPA2-CCMP needs no TLS engine */
 #define CONFIG_WPA_SUPP_CRYPTO 0
 
-#define CONFIG_WPA_SUPP_DEBUG_LEVEL 4 /* MSG_INFO */
+#define CONFIG_WPA_SUPP_DEBUG_LEVEL 3 /* MSG_INFO */
 
 /* PSK-only: no supplicant-controlled file backend, no blobs, no
  * ctrl-iface, no SME (the net80211 layer owns MLME), no MBO/WNM. */

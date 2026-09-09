@@ -43,9 +43,14 @@ int os_get_time(struct os_time *t) {
 }
 
 int os_get_reltime(struct os_reltime *t) {
-	/* the wall clock is monotonic enough for this port: the stack
-	 * only ever takes differences of it */
-	return os_get_time((struct os_time *) t);
+	struct timespec ts;
+
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) < 0) {
+		return -1;
+	}
+	t->sec = ts.tv_sec;
+	t->usec = ts.tv_nsec / 1000;
+	return 0;
 }
 
 int os_mktime(int year, int month, int day, int hour, int min, int sec,

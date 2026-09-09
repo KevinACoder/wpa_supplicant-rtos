@@ -29,10 +29,17 @@
 
 #include <kernel/time/time.h>
 #include <kernel/thread.h>
+#include <kernel/sched/schedee_priority.h>
 #include <kernel/thread/sync/mutex.h>
 #include <kernel/thread/sync/semaphore.h>
 
 #include "wpa_embox_glue.h"
+#include "wpa_embox_api.h"
+#include <kernel/time/ktime.h>
+#include <kernel/task.h>
+#include <kernel/task/kernel_task.h>
+#include <mem/sysmalloc.h>
+#include <util/err.h>
 #include "wpa_supplicant/wmm_ac.h"
 
 #define WPA_EMBOX_QUEUE_LEN 32
@@ -47,18 +54,18 @@ static struct wpa_supplicant_event_msg *
 static int wpa_embox_queue_head;
 static int wpa_embox_queue_tail;
 static struct mutex wpa_embox_queue_mtx;
-static struct sem wpa_embox_queue_sem;
 
 /* marshalled control jobs */
 struct wpa_embox_job {
 	void (*fn)(void *arg);
 	void *arg;
 	int done;
+	int started;
+	int abandoned;
 };
 
 static struct mutex wpa_embox_job_mtx;
 static struct wpa_embox_job *wpa_embox_job;
-static struct sem wpa_embox_job_done;
 static volatile int wpa_embox_ready;
 
 /* the ops table lives in driver_embox.c; it reaches wpa_supplicant.c
@@ -70,6 +77,9 @@ static volatile int wpa_embox_ready;
 static void wpa_embox_event_copy_free(int event,
     union wpa_event_data *data) {
 
+	if (data == NULL) {
+		return;
+	}
 	if (event == EVENT_EAPOL_RX) {
 		os_free((void *) data->eapol_rx.src);
 		os_free((void *) data->eapol_rx.data);
@@ -140,7 +150,7 @@ int wpa_embox_send_event(void *ctx, int event, const void *data) {
 				}
 			}
 			copy->assoc_info.addr = addr;
-		} else {
+		} else if (event != EVENT_SCAN_RESULTS) {
 			/* events with scalar-only payloads arrive with
 			 * data == NULL from the driver */
 			os_free(copy);
@@ -166,7 +176,7 @@ int wpa_embox_send_event(void *ctx, int event, const void *data) {
 	    (wpa_embox_queue_tail + 1) % WPA_EMBOX_QUEUE_LEN;
 	mutex_unlock(&wpa_embox_queue_mtx);
 
-	semaphore_leave(&wpa_embox_queue_sem);
+	wpa_embox_wake_loop();
 	return 0;
 }
 
@@ -175,8 +185,9 @@ int wpa_embox_send_dummy_event(void) {
 }
 
 void wpa_embox_process_events(void) {
+	unsigned budget = WPA_EMBOX_QUEUE_LEN;
 
-	for (;;) {
+	while (budget--) {
 		struct wpa_supplicant_event_msg *msg;
 
 		mutex_lock(&wpa_embox_queue_mtx);
@@ -202,63 +213,90 @@ void wpa_embox_process_events(void) {
 /* ------------------------------------------------------------------ */
 /* marshalled control jobs */
 
-static void wpa_embox_job_handler(void *eloop_ctx, void *timeout_ctx) {
-	struct wpa_embox_job *job = timeout_ctx;
+static void wpa_embox_job_free(struct wpa_embox_job *job) {
+	if (job->arg != NULL) {
+		sysfree(job->arg);
+	}
+	sysfree(job);
+}
 
-	(void) eloop_ctx;
+void wpa_embox_process_jobs(void) {
+	struct wpa_embox_job *job;
+	int abandoned;
+
+	mutex_lock(&wpa_embox_job_mtx);
+	job = wpa_embox_job;
+	if (job == NULL) {
+		mutex_unlock(&wpa_embox_job_mtx);
+		return;
+	}
+	job->started = 1;
+	mutex_unlock(&wpa_embox_job_mtx);
 
 	job->fn(job->arg);
 
 	mutex_lock(&wpa_embox_job_mtx);
 	job->done = 1;
 	wpa_embox_job = NULL;
+	abandoned = job->abandoned;
 	mutex_unlock(&wpa_embox_job_mtx);
-	semaphore_leave(&wpa_embox_job_done);
+	if (abandoned) {
+		wpa_embox_job_free(job);
+	}
 }
 
-static int wpa_embox_job_run(void (*fn)(void *), void *arg,
+static int wpa_embox_job_run(void (*fn)(void *), const void *arg, size_t arg_len,
     unsigned timeout_ms) {
-	struct wpa_embox_job job;
+	struct wpa_embox_job *job = syscalloc(1, sizeof(*job));
+	unsigned waited = 0;
 
-	job.fn = fn;
-	job.arg = arg;
-	job.done = 0;
+	if (job == NULL) {
+		return -ENOMEM;
+	}
+	job->fn = fn;
+	if (arg_len != 0) {
+		job->arg = sysmalloc(arg_len);
+		if (job->arg == NULL) {
+			sysfree(job);
+			return -ENOMEM;
+		}
+		memcpy(job->arg, arg, arg_len);
+	}
 
 	mutex_lock(&wpa_embox_job_mtx);
 	if (wpa_embox_job != NULL) {
 		mutex_unlock(&wpa_embox_job_mtx);
+		wpa_embox_job_free(job);
 		return -EBUSY;
 	}
-	wpa_embox_job = &job;
+	wpa_embox_job = job;
 	mutex_unlock(&wpa_embox_job_mtx);
 
-	eloop_register_timeout(0, 0, wpa_embox_job_handler, NULL, &job);
-
-	/* wait on the supplicant thread finishing the job */
-	{
-		struct timespec deadline;
-
-		clock_gettime(CLOCK_REALTIME, &deadline);
-		deadline.tv_sec += timeout_ms / 1000;
-		deadline.tv_nsec += (long) (timeout_ms % 1000) *
-		    NSEC_PER_MSEC;
-		if (deadline.tv_nsec >= (long) NSEC_PER_SEC) {
-			deadline.tv_sec++;
-			deadline.tv_nsec -= NSEC_PER_SEC;
+	wpa_embox_wake_loop();
+	for (;;) {
+		mutex_lock(&wpa_embox_job_mtx);
+		if (job->done) {
+			mutex_unlock(&wpa_embox_job_mtx);
+			wpa_embox_job_free(job);
+			return 0;
 		}
-		semaphore_timedwait(&wpa_embox_job_done, &deadline);
-	}
+		if (waited >= timeout_ms) {
+			int started = job->started;
 
-	mutex_lock(&wpa_embox_job_mtx);
-	if (!job.done) {
-		/* timed out: leave it registered, eloop will still run
-		 * it and the leave() will target a stale waiter count */
-		wpa_embox_job = NULL;
+			job->abandoned = 1;
+			if (!started) {
+				wpa_embox_job = NULL;
+			}
+			mutex_unlock(&wpa_embox_job_mtx);
+			if (!started) {
+				wpa_embox_job_free(job);
+			}
+			return -EAGAIN;
+		}
 		mutex_unlock(&wpa_embox_job_mtx);
-		return -EAGAIN;
+		ksleep(10);
+		waited += 10;
 	}
-	mutex_unlock(&wpa_embox_job_mtx);
-	return 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -268,11 +306,6 @@ struct wpa_embox_connect_req {
 	char ssid[33];
 	char psk[65];
 };
-
-/* the job mutex serializes control requests, so a single slot is fine;
- * it must outlive wpa_embox_job_run() in case the caller times out
- * while the eloop thread is still about to run the job */
-static struct wpa_embox_connect_req wpa_embox_connect_req;
 
 static void wpa_embox_do_connect(void *arg) {
 	struct wpa_embox_connect_req *req = arg;
@@ -284,7 +317,7 @@ static void wpa_embox_do_connect(void *arg) {
 	}
 
 	/* one active network: drop previous selections */
-	wpa_supplicant_select_network(wpa_embox_wpa_s, NULL);
+	wpas_request_disconnection(wpa_embox_wpa_s);
 
 	ssid = wpa_supplicant_add_network(wpa_embox_wpa_s);
 	if (ssid == NULL) {
@@ -299,9 +332,9 @@ static void wpa_embox_do_connect(void *arg) {
 	ssid->ssid_len = strlen(req->ssid);
 	ssid->scan_ssid = 1;
 	ssid->key_mgmt = WPA_KEY_MGMT_PSK;
-	ssid->proto = WPA_PROTO_RSN | WPA_PROTO_WPA;
-	ssid->pairwise_cipher = WPA_CIPHER_CCMP | WPA_CIPHER_TKIP;
-	ssid->group_cipher = WPA_CIPHER_CCMP | WPA_CIPHER_TKIP;
+	ssid->proto = WPA_PROTO_RSN;
+	ssid->pairwise_cipher = WPA_CIPHER_CCMP;
+	ssid->group_cipher = WPA_CIPHER_CCMP;
 	ssid->passphrase = os_strdup(req->psk);
 	if (ssid->passphrase == NULL) {
 		wpa_printf(MSG_ERROR, "wpa_embox: psk alloc failed");
@@ -323,7 +356,7 @@ static void wpa_embox_do_disconnect(void *arg) {
 	if (wpa_embox_wpa_s == NULL) {
 		return;
 	}
-	wpa_supplicant_select_network(wpa_embox_wpa_s, NULL);
+	wpas_request_disconnection(wpa_embox_wpa_s);
 	wpa_printf(MSG_INFO, "wpa_embox: disconnected");
 }
 
@@ -353,28 +386,27 @@ static void wpa_embox_do_status(void *arg) {
 /* public API (any thread) */
 
 int wpa_embox_connect(const char *ssid, const char *psk) {
+	struct wpa_embox_connect_req req;
 
 	if (wpa_embox_wpa_s == NULL || ssid == NULL || psk == NULL ||
-	    strlen(ssid) >= sizeof(wpa_embox_connect_req.ssid) ||
+	    strlen(ssid) == 0 || strlen(ssid) >= sizeof(req.ssid) ||
 	    (strlen(psk) != 0 && strlen(psk) != 64 &&
 		strlen(psk) < 8)) {
 		return -EINVAL;
 	}
-	os_strlcpy(wpa_embox_connect_req.ssid, ssid,
-	    sizeof(wpa_embox_connect_req.ssid));
-	os_strlcpy(wpa_embox_connect_req.psk, psk,
-	    sizeof(wpa_embox_connect_req.psk));
+	os_strlcpy(req.ssid, ssid, sizeof(req.ssid));
+	os_strlcpy(req.psk, psk, sizeof(req.psk));
 
 	return wpa_embox_job_run(wpa_embox_do_connect,
-	    &wpa_embox_connect_req, 5000);
+	    &req, sizeof(req), 5000);
 }
 
 int wpa_embox_disconnect(void) {
-	return wpa_embox_job_run(wpa_embox_do_disconnect, NULL, 5000);
+	return wpa_embox_job_run(wpa_embox_do_disconnect, NULL, 0, 5000);
 }
 
 int wpa_embox_status(void) {
-	return wpa_embox_job_run(wpa_embox_do_status, NULL, 5000);
+	return wpa_embox_job_run(wpa_embox_do_status, NULL, 0, 5000);
 }
 
 
@@ -480,23 +512,37 @@ static void *wpa_embox_supplicant_thread(void *arg) {
 
 int wpa_embox_start(void) {
 	void *thr;
-
 	int spin = 0;
 
 	if (wpa_embox_global != NULL) {
 		return 0;
 	}
-	wpa_embox_ready = 0;
-
-	thr = thread_create(THREAD_FLAG_DETACHED,
-	    wpa_embox_supplicant_thread, NULL);
-	if (thr == NULL) {
+	if (wlan_embox_ensure_up() != 0) {
 		return -1;
 	}
+	/* one-time init of the port locks/queues (all static, zeroed) */
+	mutex_init(&wpa_embox_queue_mtx);
+	mutex_init(&wpa_embox_job_mtx);
+	wpa_embox_queue_head = 0;
+	wpa_embox_queue_tail = 0;
+	wpa_embox_ready = 0;
+
+	thr = thread_create_with_stack(THREAD_FLAG_NOTASK | THREAD_FLAG_SUSPENDED, 0x40000,
+	    wpa_embox_supplicant_thread, NULL);
+	if (ptr2err(thr)) {
+		return -1;
+	}
+	/* A shell command task exits immediately after connect/start. */
+	task_thread_register(task_kernel_task(), thr);
+	thread_detach(thr);
+	/* run above the USB workers: the scan state machine spins on the
+	 * taskq threads and would starve a default-priority supplicant */
+	schedee_priority_set(&((struct thread *) thr)->schedee, 10);
 	thread_launch(thr);
 
 	/* poll until add_iface finished (plain flag, no locks) */
-	while (!wpa_embox_ready && spin < 3000000) {
+	while (!wpa_embox_ready && spin < 3000) {
+		ksleep(10);
 		spin++;
 	}
 	if (!wpa_embox_ready) {
