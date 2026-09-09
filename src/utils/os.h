@@ -57,13 +57,11 @@ static inline void os_time_sub(struct os_time *a, struct os_time *b, struct os_t
 {
     res->sec  = a->sec - b->sec;
     res->usec = a->usec - b->usec;
-#if 0
-    if (res->usec < 0)
+    if ((os_time_t) res->usec > (os_time_t) 999999)
     {
         res->sec--;
         res->usec += 1000000;
     }
-#endif
 }
 
 /* Helpers for handling struct os_reltime */
