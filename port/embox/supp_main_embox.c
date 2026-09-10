@@ -305,6 +305,8 @@ static int wpa_embox_job_run(void (*fn)(void *), const void *arg, size_t arg_len
 struct wpa_embox_connect_req {
 	char ssid[33];
 	char psk[65];
+	unsigned char bssid[6];
+	int bssid_set;
 };
 
 static void wpa_embox_do_connect(void *arg) {
@@ -331,6 +333,10 @@ static void wpa_embox_do_connect(void *arg) {
 	}
 	ssid->ssid_len = strlen(req->ssid);
 	ssid->scan_ssid = 1;
+	if (req->bssid_set) {
+		os_memcpy(ssid->bssid, req->bssid, 6);
+		ssid->bssid_set = 1;
+	}
 	ssid->key_mgmt = WPA_KEY_MGMT_PSK;
 	ssid->proto = WPA_PROTO_RSN;
 	ssid->pairwise_cipher = WPA_CIPHER_CCMP;
@@ -386,6 +392,11 @@ static void wpa_embox_do_status(void *arg) {
 /* public API (any thread) */
 
 int wpa_embox_connect(const char *ssid, const char *psk) {
+	return wpa_embox_connect_bssid(ssid, psk, NULL);
+}
+
+int wpa_embox_connect_bssid(const char *ssid, const char *psk,
+    const unsigned char *bssid) {
 	struct wpa_embox_connect_req req;
 
 	if (wpa_embox_wpa_s == NULL || ssid == NULL || psk == NULL ||
@@ -394,8 +405,13 @@ int wpa_embox_connect(const char *ssid, const char *psk) {
 		strlen(psk) < 8)) {
 		return -EINVAL;
 	}
+	memset(&req, 0, sizeof(req));
 	os_strlcpy(req.ssid, ssid, sizeof(req.ssid));
 	os_strlcpy(req.psk, psk, sizeof(req.psk));
+	if (bssid != NULL) {
+		os_memcpy(req.bssid, bssid, 6);
+		req.bssid_set = 1;
+	}
 
 	return wpa_embox_job_run(wpa_embox_do_connect,
 	    &req, sizeof(req), 5000);

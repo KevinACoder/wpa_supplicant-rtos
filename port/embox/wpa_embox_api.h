@@ -16,6 +16,9 @@ int wpa_embox_started(void);
 /* WPA2-PSK: the request is marshalled to the supplicant thread and
  * this returns once it was picked up (or timed out). */
 int wpa_embox_connect(const char *ssid, const char *psk);
+/* same, with a locked BSSID (6 bytes); NULL bssid == unconstrained */
+int wpa_embox_connect_bssid(const char *ssid, const char *psk,
+	const unsigned char *bssid);
 int wpa_embox_disconnect(void);
 int wpa_embox_status(void);
 

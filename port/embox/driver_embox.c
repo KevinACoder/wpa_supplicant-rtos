@@ -58,7 +58,7 @@
 
 struct embox_drv_data {
 	void *ctx; /* wpa_s */
-	struct urtwn_softc *sc;
+	struct ieee80211com *ic;
 	struct wpa_driver_capa capa;
 	int associated;
 	int if_up;
@@ -72,19 +72,22 @@ extern const struct ieee80211_cipher ieee80211_cipher_ccmp;
 /* ------------------------------------------------------------------ */
 /* net80211 wiring */
 
-extern struct urtwn_softc *urtwn_reg_softc;
-extern void wlan_urtwn_up(void);
+extern void *wlan_port_get_ic(void);
+extern int wlan_port_up(void);
 
-/* bring the interface up on the calling (shell) thread; urtwn_init can
- * block on the USB workers, which must not run on the supplicant thread */
+/* bring the interface up on the calling (shell) thread; the chip init
+ * can block on its workers, which must not run on the supplicant thread */
 int wlan_embox_ensure_up(void)
 {
-	if (urtwn_reg_softc == NULL) {
+	struct ieee80211com *ic = wlan_port_get_ic();
+
+	if (ic == NULL) {
 		return -1;
 	}
-	urtwn_reg_softc->sc_ic.ic_roaming = IEEE80211_ROAMING_MANUAL;
-	wlan_urtwn_up();
-	return (urtwn_reg_softc->sc_if.if_flags & IFF_RUNNING) ? 0 : -1;
+	ic->ic_roaming = IEEE80211_ROAMING_MANUAL;
+	wlan_port_up();
+	return (ic->ic_ifp != NULL &&
+	    (ic->ic_ifp->if_flags & IFF_RUNNING)) ? 0 : -1;
 }
 
 /*
@@ -132,7 +135,7 @@ static void embox_scan_poll(void *eloop_ctx, void *timeout_ctx) {
 	if (__atomic_exchange_n(&g_drv.scan_pending, 0, __ATOMIC_ACQ_REL)) {
 		memset(&data, 0, sizeof(data));
 		data.scan_info.aborted = 1;
-		ieee80211_new_state(&g_drv.sc->sc_ic, IEEE80211_S_INIT, -1);
+		ieee80211_new_state(g_drv.ic, IEEE80211_S_INIT, -1);
 		wpa_printf(MSG_ERROR, "embox: scan timed out");
 		wpa_embox_send_event(g_drv.ctx, EVENT_SCAN_RESULTS, &data);
 	}
@@ -177,14 +180,14 @@ static void *embox_init2(void *ctx, const char *ifname, void *global_priv) {
 
 	memset(&g_drv, 0, sizeof(g_drv));
 
-	g_drv.sc = urtwn_reg_softc;
-	if (g_drv.sc == NULL) {
-		wpa_printf(MSG_ERROR, "embox: no urtwn device attached");
+	g_drv.ic = wlan_port_get_ic();
+	if (g_drv.ic == NULL) {
+		wpa_printf(MSG_ERROR, "embox: no wlan device attached");
 		return NULL;
 	}
 	g_drv.ctx = ctx;
 
-	ic = &g_drv.sc->sc_ic;
+	ic = g_drv.ic;
 	ieee80211_crypto_register(&ieee80211_cipher_ccmp);
 	/* The supplicant owns BSS selection and receives scan completion. */
 	ic->ic_roaming = IEEE80211_ROAMING_MANUAL;
@@ -221,7 +224,7 @@ static void embox_deinit(void *priv) {
 
 static int embox_get_bssid(void *priv, u8 *bssid) {
 	struct embox_drv_data *drv = priv;
-	struct ieee80211com *ic = &drv->sc->sc_ic;
+	struct ieee80211com *ic = drv->ic;
 
 	if (!drv->associated) {
 		return -1;
@@ -232,7 +235,7 @@ static int embox_get_bssid(void *priv, u8 *bssid) {
 
 static int embox_get_ssid(void *priv, u8 *ssid) {
 	struct embox_drv_data *drv = priv;
-	struct ieee80211com *ic = &drv->sc->sc_ic;
+	struct ieee80211com *ic = drv->ic;
 
 	if (!drv->associated) {
 		return -1;
@@ -342,7 +345,7 @@ static void embox_collect_cb(void *arg, struct ieee80211_node *ni) {
 
 static struct wpa_scan_results *embox_get_scan_results2(void *priv) {
 	struct embox_drv_data *drv = priv;
-	struct ieee80211com *ic = &drv->sc->sc_ic;
+	struct ieee80211com *ic = drv->ic;
 	struct wpa_scan_results *res;
 	struct embox_scan_collect collect;
 
@@ -368,7 +371,7 @@ static struct wpa_scan_results *embox_get_scan_results2(void *priv) {
 static int embox_deauthenticate(void *priv, const u8 *addr,
     u16 reason_code) {
 	struct embox_drv_data *drv = priv;
-	struct ieee80211com *ic = &drv->sc->sc_ic;
+	struct ieee80211com *ic = drv->ic;
 
 	(void) addr;
 	__atomic_store_n(&drv->scan_pending, 0, __ATOMIC_RELEASE);
@@ -381,7 +384,7 @@ static int embox_deauthenticate(void *priv, const u8 *addr,
 static int embox_associate(void *priv,
     struct wpa_driver_associate_params *params) {
 	struct embox_drv_data *drv = priv;
-	struct ieee80211com *ic = &drv->sc->sc_ic;
+	struct ieee80211com *ic = drv->ic;
 	struct ieee80211_node *ni;
 	u8 *opt_ie;
 
@@ -442,6 +445,11 @@ static int embox_associate(void *priv,
 		    "embox: bss not in scan table, rescanning");
 		return -1;
 	}
+	/* the radio must sit on the BSS channel before the join runs;
+	 * the port has no channel-change callback of its own */
+	if (ni->ni_chan != NULL) {
+		ic->ic_curchan = ni->ni_chan;
+	}
 	/* sta_join consumes the reference */
 	ic->ic_bss->ni_authmode = IEEE80211_AUTH_8021X;
 	ieee80211_sta_join(ic, ni);
@@ -450,7 +458,7 @@ static int embox_associate(void *priv,
 
 static int embox_set_key(void *priv, struct wpa_driver_set_key_params *p) {
 	struct embox_drv_data *drv = priv;
-	struct ieee80211com *ic = &drv->sc->sc_ic;
+	struct ieee80211com *ic = drv->ic;
 	struct ieee80211_key *wk;
 	struct ieee80211_node *ni;
 	int is_group;
@@ -516,7 +524,7 @@ out:
 
 static int embox_set_supp_port(void *priv, int authorized) {
 	struct embox_drv_data *drv = priv;
-	struct ieee80211_node *ni = drv->sc->sc_ic.ic_bss;
+	struct ieee80211_node *ni = drv->ic->ic_bss;
 
 	if (ni != NULL) {
 		if (authorized) {

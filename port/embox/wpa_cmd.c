@@ -15,8 +15,8 @@
 #include "wpa_embox_api.h"
 
 static void usage(const char *argv0) {
-	printf("usage: %s start | status | connect <ssid> <psk> | "
-	       "disconnect\n",
+	printf("usage: %s start | status | connect <ssid> <psk> [bssid] | "
+	       "disconnect\n", 
 	    argv0);
 }
 
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 		}
 		return 0;
 	}
-	if (strcmp(argv[1], "connect") == 0 && argc == 4) {
+	if (strcmp(argv[1], "connect") == 0 && (argc == 4 || argc == 5)) {
 		if (!wpa_embox_started()) {
 			/* interface up happens on this (shell) thread: urtwn_init
 			 * blocks on the USB workers and must not run on the
@@ -49,7 +49,26 @@ int main(int argc, char **argv) {
 			wlan_embox_ensure_up();
 			wpa_embox_start();
 		}
-		ret = wpa_embox_connect(argv[2], argv[3]);
+		if (argc == 5) {
+			unsigned b[6];
+
+			if (sscanf(argv[4],
+			    "%x:%x:%x:%x:%x:%x",
+			    &b[0], &b[1], &b[2], &b[3], &b[4], &b[5]) == 6) {
+				unsigned char mac[6];
+
+				for (int i = 0; i < 6; i++) {
+					mac[i] = (unsigned char) b[i];
+				}
+				ret = wpa_embox_connect_bssid(argv[2],
+				    argv[3], mac);
+			} else {
+				printf("wpa: bad bssid %s\n", argv[4]);
+				return 1;
+			}
+		} else {
+			ret = wpa_embox_connect(argv[2], argv[3]);
+		}
 		if (ret == 0) {
 			printf("wpa: connecting to \"%s\"\n", argv[2]);
 		} else {
